@@ -47,7 +47,7 @@ onUnmounted(() => notifications.stopPolling());
         tabindex="-1"
         class="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 outline-none sm:px-6"
       >
-        <RouterView />
+        <RouterView :key="$route.path" />
       </main>
     </div>
   </div>

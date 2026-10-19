@@ -105,6 +105,7 @@ router.beforeEach(async (to) => {
   return r;
 });
 
-router.afterEach(() => {
+router.afterEach((to, from) => {
+  if (to.path === from.path) return;
   requestAnimationFrame(() => document.getElementById('main')?.focus());
 });
