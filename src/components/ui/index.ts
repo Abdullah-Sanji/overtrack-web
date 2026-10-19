@@ -25,3 +25,5 @@ export { default as DatePicker } from './DatePicker.vue';
 export { default as TimeInput } from './TimeInput.vue';
 export { default as Timeline } from './Timeline.vue';
 export { useToast } from './useToast';
+export { default as DataTable } from './DataTable.vue';
+export { default as Pagination } from './Pagination.vue';
