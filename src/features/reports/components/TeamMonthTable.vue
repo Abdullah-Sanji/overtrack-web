@@ -74,21 +74,18 @@ const columns = computed<ColumnDef<TeamMonthRow, unknown>[]>(() => [
           :editable="false"
           @open-attachment="sheetsApi.openAttachment($event)"
       /></template>
+      <template #footer>
+        <td />
+        <td class="px-4 py-3 font-medium">Team totals</td>
+        <td v-for="t in report.types" :key="t.id" class="num px-4 py-3 text-right">
+          {{ formatHours(report.totals.hoursByType[t.id] ?? 0) }}
+        </td>
+        <td class="num px-4 py-3 text-right font-semibold">{{ formatHours(report.totals.totalHours) }}</td>
+        <td class="num px-4 py-3 text-right font-semibold">
+          {{ formatHours(report.totals.totalWeightedHours) }}
+        </td>
+        <td colspan="2" />
+      </template>
     </DataTable>
-    <table class="mt-2 w-full text-sm" aria-label="Totals">
-      <tfoot>
-        <tr class="rounded-card border bg-muted/40">
-          <td class="px-4 py-3 font-medium">Team totals</td>
-          <td v-for="t in report.types" :key="t.id" class="num px-4 py-3 text-right">
-            {{ formatHours(report.totals.hoursByType[t.id] ?? 0) }}
-          </td>
-          <td class="num px-4 py-3 text-right font-semibold">{{ formatHours(report.totals.totalHours) }}</td>
-          <td class="num px-4 py-3 text-right font-semibold">
-            {{ formatHours(report.totals.totalWeightedHours) }}
-          </td>
-          <td colspan="2" />
-        </tr>
-      </tfoot>
-    </table>
   </div>
 </template>

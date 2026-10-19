@@ -122,8 +122,15 @@ function toggle(id: string) {
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <tr
               class="border-t transition-colors hover:bg-muted/40"
-              :class="clickable ? 'cursor-pointer' : ''"
+              :class="
+                clickable
+                  ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                  : ''
+              "
+              :tabindex="clickable ? 0 : undefined"
               @click="emit('rowClick', row.original)"
+              @keydown.enter.self.prevent="clickable && emit('rowClick', row.original)"
+              @keydown.space.self.prevent="clickable && emit('rowClick', row.original)"
             >
               <td v-if="expandable" class="px-2">
                 <button
@@ -156,6 +163,11 @@ function toggle(id: string) {
           </template>
         </template>
       </tbody>
+      <tfoot v-if="$slots.footer && !loading && !error" class="border-t bg-muted/40">
+        <tr>
+          <slot name="footer" />
+        </tr>
+      </tfoot>
     </table>
   </div>
 </template>

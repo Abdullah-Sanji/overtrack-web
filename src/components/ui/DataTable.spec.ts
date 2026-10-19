@@ -46,6 +46,25 @@ describe('DataTable', () => {
     expect(clickable.find('tbody tr').classes()).toContain('cursor-pointer');
   });
 
+  it('activates a clickable row from the keyboard', async () => {
+    const w = mount(DataTable, {
+      props: { columns, rows, rowKey: (r: Row) => r.id, onRowClick: () => {} },
+    });
+    const row = w.find('tbody tr');
+    expect(row.attributes('tabindex')).toBe('0');
+    await row.trigger('keydown.enter');
+    await row.trigger('keydown.space');
+    expect(w.emitted('rowClick')).toHaveLength(2);
+  });
+
+  it('renders the footer slot inside the table', () => {
+    const w = mount(DataTable, {
+      props: { columns, rows, rowKey: (r: Row) => r.id },
+      slots: { footer: '<td>Totals</td>' },
+    });
+    expect(w.find('table tfoot tr td').text()).toBe('Totals');
+  });
+
   it('applies numeric class and toggles expansion without emitting rowClick', async () => {
     const w = mount(DataTable, {
       props: { columns, rows, rowKey: (r: Row) => r.id, expandable: true },
