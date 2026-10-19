@@ -80,7 +80,7 @@ async function decide(p: { comment: string; overrideReason?: string }) {
     </div>
     <div
       v-if="canAct"
-      class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t bg-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6"
+      class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border bg-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 shadow-lg rounded-lg mt-6"
     >
       <p v-if="!named" class="mr-auto text-sm text-warning">
         Acting as admin on behalf of {{ fullName(current!.approver) }}

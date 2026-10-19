@@ -149,8 +149,10 @@ const savePassword = pw.handleSubmit(async (v) => {
             />
           </template>
         </FormField>
-        <Switch :model-value="ui.theme === 'dark'" label="Dark mode" @update:model-value="ui.toggleTheme()" />
-        <Button type="submit" :loading="profile.isSubmitting.value">Save profile</Button>
+        <div class="flex flex-col gap-2">
+          <Switch :model-value="ui.theme === 'dark'" label="Dark mode" @update:model-value="ui.toggleTheme()" />
+          <Button type="submit" :loading="profile.isSubmitting.value">Save profile</Button>
+        </div>
       </form>
     </Card>
     <Card>

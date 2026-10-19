@@ -23,7 +23,7 @@ const tones = {
   <ol class="relative space-y-4 border-l pl-6">
     <li v-for="it in items" :key="it.id" class="relative">
       <span
-        class="absolute -left-[31px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full"
+        class="absolute -left-[34px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full"
         :class="tones[it.tone ?? 'neutral']"
         ><component :is="it.icon ?? Circle" class="h-3 w-3" aria-hidden="true"
       /></span>

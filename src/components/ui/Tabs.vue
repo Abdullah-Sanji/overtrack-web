@@ -8,7 +8,7 @@ const emit = defineEmits<{ 'update:modelValue': [v: string] }>();
 </script>
 <template>
   <TabsRoot :model-value="modelValue" @update:model-value="emit('update:modelValue', $event as string)">
-    <TabsList class="mb-4 flex gap-1 overflow-x-auto border-b" aria-label="Tabs">
+    <TabsList class="mb-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b" aria-label="Tabs">
       <TabsTrigger
         v-for="t in tabs"
         :key="t.value"
