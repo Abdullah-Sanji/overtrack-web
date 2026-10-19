@@ -1,0 +1,84 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { RouterLink } from 'vue-router';
+import {
+  LayoutDashboard,
+  FileText,
+  Inbox,
+  Users2,
+  Wallet,
+  UserCog,
+  Network,
+  Timer,
+  ScrollText,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/auth.store';
+import { useUiStore } from '@/stores/ui.store';
+const props = defineProps<{ inboxCount?: number }>();
+const auth = useAuthStore();
+const ui = useUiStore();
+const items = computed(() =>
+  [
+    { name: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
+    { name: 'my-sheets', label: 'My sheets', icon: FileText, show: true },
+    { name: 'inbox', label: 'Inbox', icon: Inbox, show: true, badge: props.inboxCount },
+    { name: 'team-month', label: 'Team month', icon: Users2, show: auth.can('manager') },
+    { name: 'payments', label: 'Payments', icon: Wallet, show: auth.can('finance') },
+    { name: 'admin-users', label: 'Users', icon: UserCog, show: auth.can('admin'), group: 'Admin' },
+    { name: 'admin-teams', label: 'Teams', icon: Network, show: auth.can('admin'), group: 'Admin' },
+    {
+      name: 'admin-overtime-types',
+      label: 'Overtime types',
+      icon: Timer,
+      show: auth.can('admin'),
+      group: 'Admin',
+    },
+    { name: 'admin-audit', label: 'Audit log', icon: ScrollText, show: auth.can('admin'), group: 'Admin' },
+  ].filter((i) => i.show),
+);
+</script>
+<template>
+  <nav aria-label="Main" class="flex h-full flex-col gap-1 p-3">
+    <template v-for="(it, idx) in items" :key="it.name">
+      <p
+        v-if="it.group && items[idx - 1]?.group !== it.group && !ui.sidebarCollapsed"
+        class="mt-4 px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+      >
+        {{ it.group }}
+      </p>
+      <RouterLink v-slot="{ href, navigate, isActive }" :to="{ name: it.name }" custom>
+        <a
+          :href="href"
+          class="flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
+          :class="isActive ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-muted'"
+          :aria-current="isActive ? 'page' : undefined"
+          :title="ui.sidebarCollapsed ? it.label : undefined"
+          @click="
+            navigate($event);
+            ui.mobileNavOpen = false;
+          "
+        >
+          <component :is="it.icon" class="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span v-if="!ui.sidebarCollapsed" class="flex-1 truncate">{{ it.label }}</span>
+          <span
+            v-if="it.badge && !ui.sidebarCollapsed"
+            class="num rounded-full bg-secondary px-2 text-xs text-on-secondary"
+            >{{ it.badge }}</span
+          >
+        </a>
+      </RouterLink>
+    </template>
+    <button
+      type="button"
+      class="mt-auto hidden h-11 cursor-pointer items-center gap-3 rounded-control px-3 text-muted-foreground hover:bg-muted lg:flex"
+      :aria-label="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      @click="ui.toggleSidebar()"
+    >
+      <ChevronsRight v-if="ui.sidebarCollapsed" class="h-5 w-5" />
+      <ChevronsLeft v-else class="h-5 w-5" />
+      <span v-if="!ui.sidebarCollapsed">Collapse</span>
+    </button>
+  </nav>
+</template>
