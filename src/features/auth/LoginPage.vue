@@ -25,8 +25,11 @@ const { handleSubmit, defineField, errors, setErrors, isSubmitting } = useForm<{
   validationSchema: schema,
   initialValues: { email: '', password: '' },
 });
-const [email] = defineField('email', { validateOnBlur: true, validateOnModelUpdate: false });
-const [password] = defineField('password', { validateOnBlur: true, validateOnModelUpdate: false });
+const [email, emailAttrs] = defineField('email', { validateOnBlur: true, validateOnModelUpdate: false });
+const [password, passwordAttrs] = defineField('password', {
+  validateOnBlur: true,
+  validateOnModelUpdate: false,
+});
 const formError = ref('');
 
 function redirectTarget() {
@@ -57,12 +60,19 @@ const submit = handleSubmit(async (v) => {
       </p>
       <FormField label="Email" name="email" :error="errors.email" required>
         <template #default="{ id, invalid }">
-          <Input :id="id" v-model="email" type="email" autocomplete="email" :invalid="invalid" />
+          <Input
+            :id="id"
+            v-model="email"
+            v-bind="emailAttrs"
+            type="email"
+            autocomplete="email"
+            :invalid="invalid"
+          />
         </template>
       </FormField>
       <FormField label="Password" name="password" :error="errors.password" required>
         <template #default="{ id, invalid }">
-          <PasswordInput :id="id" v-model="password" :invalid="invalid" />
+          <PasswordInput :id="id" v-model="password" v-bind="passwordAttrs" :invalid="invalid" />
         </template>
       </FormField>
       <Button type="submit" block :loading="isSubmitting">Sign in</Button>

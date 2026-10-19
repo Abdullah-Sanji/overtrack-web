@@ -20,9 +20,9 @@ const { handleSubmit, defineField, errors, setErrors, isSubmitting } = useForm<{
   validationSchema: schema,
   initialValues: { password: '', confirm: '' },
 });
-const opts = { validateOnBlur: true, validateOnModelUpdate: false };
-const [password] = defineField('password', opts);
-const [confirm] = defineField('confirm', opts);
+const opts = { validateOnBlur: true, validateOnModelUpdate: true };
+const [password, passwordAttrs] = defineField('password', opts);
+const [confirm, confirmAttrs] = defineField('confirm', opts);
 const formError = ref('');
 const submit = handleSubmit(async (v) => {
   formError.value = '';
@@ -46,12 +46,24 @@ const submit = handleSubmit(async (v) => {
       required
     >
       <template #default="{ id, invalid }">
-        <PasswordInput :id="id" v-model="password" autocomplete="new-password" :invalid="invalid" />
+        <PasswordInput
+          :id="id"
+          v-model="password"
+          v-bind="passwordAttrs"
+          autocomplete="new-password"
+          :invalid="invalid"
+        />
       </template>
     </FormField>
     <FormField label="Confirm password" name="confirm" :error="errors.confirm" required>
       <template #default="{ id, invalid }">
-        <PasswordInput :id="id" v-model="confirm" autocomplete="new-password" :invalid="invalid" />
+        <PasswordInput
+          :id="id"
+          v-model="confirm"
+          v-bind="confirmAttrs"
+          autocomplete="new-password"
+          :invalid="invalid"
+        />
       </template>
     </FormField>
     <Button type="submit" block :loading="isSubmitting">{{ submitLabel }}</Button>

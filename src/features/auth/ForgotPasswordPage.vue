@@ -13,7 +13,7 @@ const { handleSubmit, defineField, errors, isSubmitting } = useForm<{ email: str
   validationSchema: toTypedSchema(z.object({ email: z.string().email('Enter a valid email') })),
   initialValues: { email: '' },
 });
-const [email] = defineField('email', { validateOnBlur: true, validateOnModelUpdate: false });
+const [email, emailAttrs] = defineField('email', { validateOnBlur: true, validateOnModelUpdate: false });
 const done = ref(false);
 const formError = ref('');
 const submit = handleSubmit(async (v) => {
@@ -42,7 +42,14 @@ const submit = handleSubmit(async (v) => {
       <p v-if="formError" role="alert" class="text-sm text-destructive">{{ formError }}</p>
       <FormField label="Email" name="email" :error="errors.email" required>
         <template #default="{ id, invalid }">
-          <Input :id="id" v-model="email" type="email" autocomplete="email" :invalid="invalid" />
+          <Input
+            :id="id"
+            v-model="email"
+            v-bind="emailAttrs"
+            type="email"
+            autocomplete="email"
+            :invalid="invalid"
+          />
         </template>
       </FormField>
       <Button type="submit" block :loading="isSubmitting">Send reset link</Button>

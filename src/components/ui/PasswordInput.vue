@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false });
 import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 defineProps<{ modelValue: string; invalid?: boolean; id?: string; autocomplete?: string }>();
@@ -9,6 +10,7 @@ const show = ref(false);
   <div class="relative">
     <input
       :id="id"
+      v-bind="$attrs"
       :type="show ? 'text' : 'password'"
       :value="modelValue"
       :autocomplete="autocomplete ?? 'current-password'"
@@ -19,7 +21,7 @@ const show = ref(false);
     />
     <button
       type="button"
-      class="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-control text-muted-foreground hover:bg-muted"
+      class="absolute right-0 top-0 flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground hover:bg-muted"
       :aria-label="show ? 'Hide password' : 'Show password'"
       @click="show = !show"
     >

@@ -43,3 +43,14 @@ describe('LoginPage', () => {
     expect(push).toHaveBeenCalledWith({ name: 'dashboard' });
   });
 });
+
+describe('LoginPage blur validation', () => {
+  it('shows the email error on blur without submitting', async () => {
+    mockRoute.query = {};
+    const w = mount(LoginPage, { global: { plugins: [createTestingPinia({ createSpy: vi.fn })] } });
+    const input = w.find('input[type="email"]');
+    await input.setValue('nope');
+    await input.trigger('blur');
+    await vi.waitFor(() => expect(w.text()).toContain('Enter a valid email'));
+  });
+});
