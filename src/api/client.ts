@@ -1,7 +1,12 @@
 import { ApiError } from './errors';
 import type { ApiErrorBody as Body } from './types';
 
-export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+export let API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+
+/** Test seam: override the API base (absolute or relative). */
+export function setApiUrl(u: string) {
+  API_URL = u;
+}
 
 interface TokenProvider {
   get: () => string | null;
@@ -40,7 +45,7 @@ export interface RequestOptions {
 }
 
 export async function request<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
-  const url = new URL(API_URL + path);
+  const url = new URL(API_URL + path, window.location.origin);
   for (const [k, v] of Object.entries(opts.query ?? {})) {
     if (v !== undefined && v !== '') url.searchParams.set(k, String(v));
   }
@@ -60,12 +65,17 @@ export async function request<T>(method: string, path: string, opts: RequestOpti
   if (res.status === 401 && !opts.skipAuth) {
     const body = await safeJson(res);
     if (body?.code === 'TOKEN_EXPIRED' || body?.code === 'UNAUTHORIZED') {
+      let fresh: string;
       try {
-        const fresh = await refreshOnce();
-        res = await run(fresh);
+        fresh = await refreshOnce();
       } catch {
         provider.clear();
         throw new ApiError(401, body.code, body.message);
+      }
+      res = await run(fresh);
+      if (res.status === 401) {
+        provider.clear();
+        await throwFrom(res);
       }
     } else {
       throw new ApiError(401, body?.code ?? 'UNAUTHORIZED', body?.message ?? 'Unauthorized');

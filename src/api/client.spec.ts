@@ -71,3 +71,27 @@ describe('client', () => {
     fetchMock.mockRestore();
   });
 });
+
+describe('client base url', () => {
+  it('resolves a relative base against the page origin', async () => {
+    const { setApiUrl, API_URL } = await import('./client');
+    const original = API_URL;
+    setApiUrl('/api/v1');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(json(200, { data: 1 }));
+    await request('GET', '/me', { query: { a: 1 } });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${window.location.origin}/api/v1/me?a=1`);
+    fetchMock.mockRestore();
+    setApiUrl(original);
+  });
+
+  it('clears the session when a retried request is still 401', async () => {
+    const clear = vi.fn();
+    setTokenProvider({ get: () => 'a', refresh: async () => 'b', clear });
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async () => json(401, { statusCode: 401, code: 'UNAUTHORIZED', message: 'x' }));
+    await expect(request('GET', '/a')).rejects.toMatchObject({ status: 401 });
+    expect(clear).toHaveBeenCalled();
+    fetchMock.mockRestore();
+  });
+});
