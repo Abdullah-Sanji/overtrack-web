@@ -14,14 +14,7 @@ const map = {
 const m = computed(() => map[props.status]);
 </script>
 <template>
-  <Badge
-    :tone="m.tone"
-    :class="`status-${status}`"
-  >
-    <component
-      :is="m.icon"
-      class="h-4 w-4"
-      aria-hidden="true"
-    />{{ m.label }}
+  <Badge :tone="m.tone" :class="`status-${status}`">
+    <component :is="m.icon" class="h-4 w-4" aria-hidden="true" />{{ m.label }}
   </Badge>
 </template>

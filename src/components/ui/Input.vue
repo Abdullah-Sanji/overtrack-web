@@ -19,5 +19,5 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
     class="h-11 w-full rounded-control border bg-surface px-3 text-base text-foreground placeholder:text-muted-foreground transition-colors duration-150 disabled:opacity-50 read-only:bg-muted"
     :class="[invalid ? 'border-destructive' : 'border-border', mono ? 'num' : '']"
     @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-  >
+  />
 </template>

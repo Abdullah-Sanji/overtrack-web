@@ -2,29 +2,66 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --primary: #1e3a5f; --on-primary: #ffffff; --secondary: #2563eb; --on-secondary: #ffffff;
-  --accent: #059669; --on-accent: #ffffff; --destructive: #dc2626; --on-destructive: #ffffff;
-  --background: #f8fafc; --surface: #ffffff; --foreground: #0f172a; --muted: #f1f3f5; --muted-foreground: #475569;
-  --border: #e4e7eb; --ring: #1e3a5f; --indigo: #4f46e5; --warning: #d97706;
+  --primary: #1e3a5f;
+  --on-primary: #ffffff;
+  --secondary: #2563eb;
+  --on-secondary: #ffffff;
+  --accent: #059669;
+  --on-accent: #ffffff;
+  --destructive: #dc2626;
+  --on-destructive: #ffffff;
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --foreground: #0f172a;
+  --muted: #f1f3f5;
+  --muted-foreground: #475569;
+  --border: #e4e7eb;
+  --ring: #1e3a5f;
+  --indigo: #4f46e5;
+  --warning: #d97706;
 }
 .dark {
-  --primary: #93b4e0; --on-primary: #0b1a2e; --secondary: #60a5fa; --on-secondary: #0b1a2e;
-  --accent: #34d399; --on-accent: #052e22; --destructive: #f87171; --on-destructive: #2b0a0a;
-  --background: #0f172a; --surface: #1e293b; --foreground: #e2e8f0; --muted: #273449; --muted-foreground: #94a3b8;
-  --border: #334155; --ring: #93b4e0; --indigo: #a5b4fc; --warning: #fbbf24;
+  --primary: #93b4e0;
+  --on-primary: #0b1a2e;
+  --secondary: #60a5fa;
+  --on-secondary: #0b1a2e;
+  --accent: #34d399;
+  --on-accent: #052e22;
+  --destructive: #f87171;
+  --on-destructive: #2b0a0a;
+  --background: #0f172a;
+  --surface: #1e293b;
+  --foreground: #e2e8f0;
+  --muted: #273449;
+  --muted-foreground: #94a3b8;
+  --border: #334155;
+  --ring: #93b4e0;
+  --indigo: #a5b4fc;
+  --warning: #fbbf24;
 }
 
 @theme inline {
-  --color-primary: var(--primary); --color-on-primary: var(--on-primary);
-  --color-secondary: var(--secondary); --color-on-secondary: var(--on-secondary);
-  --color-accent: var(--accent); --color-on-accent: var(--on-accent);
-  --color-destructive: var(--destructive); --color-on-destructive: var(--on-destructive);
-  --color-background: var(--background); --color-surface: var(--surface); --color-foreground: var(--foreground);
-  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border); --color-ring: var(--ring); --color-indigo: var(--indigo); --color-warning: var(--warning);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-destructive: var(--destructive);
+  --color-on-destructive: var(--on-destructive);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-indigo: var(--indigo);
+  --color-warning: var(--warning);
   --font-sans: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Fira Code', ui-monospace, monospace;
-  --radius-control: 6px; --radius-card: 10px;
+  --radius-control: 6px;
+  --radius-card: 10px;
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.1);
   --shadow-dialog: 0 10px 30px rgb(15 23 42 / 0.25);
 }

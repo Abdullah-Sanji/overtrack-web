@@ -18,5 +18,6 @@ const cls = computed(() => tones[props.tone]);
   <span
     class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium whitespace-nowrap"
     :class="cls"
-  ><slot /></span>
+    ><slot
+  /></span>
 </template>

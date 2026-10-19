@@ -2,10 +2,7 @@
 withDefaults(defineProps<{ lines?: number }>(), { lines: 1 });
 </script>
 <template>
-  <div
-    aria-hidden="true"
-    class="space-y-2"
-  >
+  <div aria-hidden="true" class="space-y-2">
     <div
       v-for="i in lines"
       :key="i"

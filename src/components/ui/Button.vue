@@ -34,10 +34,7 @@ const classes = computed(() => [
     :disabled="disabled || loading"
     :aria-busy="loading ? 'true' : undefined"
   >
-    <Spinner
-      v-if="loading"
-      size="sm"
-    />
+    <Spinner v-if="loading" size="sm" />
     <slot />
   </button>
 </template>
