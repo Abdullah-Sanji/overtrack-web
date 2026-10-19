@@ -3,16 +3,35 @@ import { computed, ref } from 'vue';
 import { authApi } from '@/api/auth.api';
 import { setTokenProvider } from '@/api/client';
 import type { PublicUser } from '@/api/types';
+import { queryClient } from '@/app/query';
+import { useNotificationsStore } from './notifications.store';
 import { hasPerm, type Perm } from '@/lib/permissions';
+
+let sessionLostHandler: (() => void) | null = null;
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<PublicUser | null>(null);
   const accessToken = ref<string | null>(null);
   const status = ref<'idle' | 'loading' | 'ready'>('idle');
 
-  function clear() {
+  function wipe() {
     user.value = null;
     accessToken.value = null;
+    queryClient.clear();
+    const n = useNotificationsStore();
+    n.stopPolling();
+    n.reset();
+  }
+
+  /** Token provider hook: the session was lost mid-use. */
+  function clear() {
+    const had = Boolean(user.value);
+    wipe();
+    if (had) sessionLostHandler?.();
+  }
+
+  function setSessionLostHandler(h: (() => void) | null) {
+    sessionLostHandler = h;
   }
 
   setTokenProvider({
@@ -32,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
       accessToken.value = await authApi.refresh();
       user.value = await authApi.me();
     } catch {
-      clear();
+      wipe();
     } finally {
       status.value = 'ready';
     }
@@ -40,6 +59,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(email: string, password: string) {
     const r = await authApi.login(email, password);
+    queryClient.clear();
+    useNotificationsStore().reset();
     accessToken.value = r.accessToken;
     user.value = r.user;
     status.value = 'ready';
@@ -49,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authApi.logout();
     } finally {
-      clear();
+      wipe();
     }
   }
 
@@ -64,6 +85,8 @@ export const useAuthStore = defineStore('auth', () => {
     bootstrap,
     login,
     logout,
+    clear,
+    setSessionLostHandler,
     isAuthenticated,
     role,
     can,

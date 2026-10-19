@@ -104,7 +104,7 @@ async function confirmRemove() {
       <SheetActions
         :sheet="sheet.data.value"
         :is-owner="isOwner"
-        :role="auth.user!.role"
+        :role="auth.user?.role ?? 'employee'"
         :invalidate="invalidate"
       />
     </div>
