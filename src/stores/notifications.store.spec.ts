@@ -36,7 +36,6 @@ describe('notifications store', () => {
     const s = useNotificationsStore();
     await s.load();
     expect(s.unread).toBe(1);
-    expect(s.waitingCount).toBe(1);
     await s.markRead('n1');
     expect(s.unread).toBe(0);
     expect(s.items[0].readAt).not.toBeNull();

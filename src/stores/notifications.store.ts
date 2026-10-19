@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { notificationsApi } from '@/api/notifications.api';
 import type { Notification } from '@/api/types';
 
@@ -61,10 +61,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     loaded.value = false;
   }
 
-  const waitingCount = computed(
-    () => items.value.filter((i) => !i.readAt && i.type === 'sheet.submitted').length,
-  );
-
   return {
     items,
     unread,
@@ -75,6 +71,5 @@ export const useNotificationsStore = defineStore('notifications', () => {
     startPolling,
     stopPolling,
     reset,
-    waitingCount,
   };
 });
