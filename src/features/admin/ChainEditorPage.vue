@@ -34,7 +34,7 @@ interface Step {
 const MAX_STEPS = 10;
 let seq = 0;
 const steps = ref<Step[]>([]);
-const errors = ref<Record<number, string>>({});
+const errors = ref<Record<number, { label?: string; approver?: string; backup?: string }>>({});
 const saving = ref(false);
 
 const fromServer = (s: ChainStepView[]): Step[] =>
@@ -77,10 +77,13 @@ function move(i: number, d: -1 | 1) {
 function validate() {
   errors.value = {};
   steps.value.forEach((s) => {
-    if (!s.label.trim()) errors.value[s.key] = 'Give this step a label';
-    else if (!s.approverId) errors.value[s.key] = 'Pick an approver';
-    else if (s.backupApproverId === s.approverId)
-      errors.value[s.key] = 'Backup must differ from the approver';
+    const e: { label?: string; approver?: string; backup?: string } = {};
+    const label = s.label.trim();
+    if (!label) e.label = 'Give this step a label';
+    else if (label.length > 40) e.label = 'At most 40 characters';
+    if (!s.approverId) e.approver = 'Pick an approver';
+    else if (s.backupApproverId === s.approverId) e.backup = 'Backup must differ from the approver';
+    if (Object.keys(e).length) errors.value[s.key] = e;
   });
   return Object.keys(errors.value).length === 0;
 }
@@ -141,21 +144,28 @@ defineExpose({ steps });
       <Card v-for="(s, i) in steps" :key="s.key">
         <div class="grid gap-3 md:grid-cols-[auto_1fr_1fr_1fr_auto] md:items-end">
           <p class="num text-xl font-semibold text-muted-foreground md:pb-2">{{ i + 1 }}</p>
-          <FormField label="Label" :name="`label-${s.key}`" :error="errors[s.key]" required>
+          <FormField label="Label" :name="`label-${s.key}`" :error="errors[s.key]?.label" required>
             <template #default="{ id: fid, invalid }">
-              <Input :id="fid" v-model="s.label" :invalid="invalid" placeholder="Tech Lead" />
+              <Input :id="fid" v-model="s.label" :invalid="invalid" placeholder="Tech Lead" maxlength="40" />
             </template>
           </FormField>
-          <FormField label="Approver" :name="`approver-${s.key}`" required>
-            <template #default="{ id: fid }">
-              <Combobox :id="fid" v-model="s.approverId" :options="people" placeholder="Search people" />
+          <FormField label="Approver" :name="`approver-${s.key}`" :error="errors[s.key]?.approver" required>
+            <template #default="{ id: fid, invalid }">
+              <Combobox
+                :id="fid"
+                v-model="s.approverId"
+                :invalid="invalid"
+                :options="people"
+                placeholder="Search people"
+              />
             </template>
           </FormField>
-          <FormField label="Backup (optional)" :name="`backup-${s.key}`">
-            <template #default="{ id: fid }">
+          <FormField label="Backup (optional)" :name="`backup-${s.key}`" :error="errors[s.key]?.backup">
+            <template #default="{ id: fid, invalid }">
               <Combobox
                 :id="fid"
                 v-model="s.backupApproverId"
+                :invalid="invalid"
                 :options="people"
                 placeholder="Search people"
               />

@@ -39,7 +39,7 @@ vi.mock('vue-router', () => ({
 }));
 
 describe('ChainEditorPage', () => {
-  it('starts empty with a warning, adds a step, validates approver, moves steps, saves in order', async () => {
+  it('starts empty with a warning, adds steps, reorders them and saves in order', async () => {
     const w = mount(ChainEditorPage, {
       props: { id: 't1' },
       global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
@@ -61,5 +61,51 @@ describe('ChainEditorPage', () => {
       { label: 'CTO', approverId: 'u2', backupApproverId: null },
       { label: 'TL', approverId: 'u1', backupApproverId: null },
     ]);
+  });
+
+  async function mountEditor() {
+    replace.mockClear();
+    const w = mount(ChainEditorPage, {
+      props: { id: 't1' },
+      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+    });
+    await flushPromises();
+    await w.find('[data-action="add-step"]').trigger('click');
+    const vm = w.vm as unknown as {
+      steps: Array<{ label: string; approverId: string | null; backupApproverId: string | null }>;
+    };
+    return { w, step: vm.steps[0] };
+  }
+  async function trySave(w: Awaited<ReturnType<typeof mountEditor>>['w']) {
+    await flushPromises();
+    await w.find('[data-action="save"]').trigger('click');
+    await flushPromises();
+  }
+
+  it('blocks save and shows an error when the approver is missing', async () => {
+    const { w, step } = await mountEditor();
+    step.label = 'TL';
+    await trySave(w);
+    expect(replace).not.toHaveBeenCalled();
+    expect(w.text()).toContain('Pick an approver');
+  });
+
+  it('blocks save when the label is longer than 40 characters', async () => {
+    const { w, step } = await mountEditor();
+    step.label = 'x'.repeat(41);
+    step.approverId = 'u1';
+    await trySave(w);
+    expect(replace).not.toHaveBeenCalled();
+    expect(w.text()).toContain('At most 40 characters');
+  });
+
+  it('blocks save when the backup equals the approver', async () => {
+    const { w, step } = await mountEditor();
+    step.label = 'TL';
+    step.approverId = 'u1';
+    step.backupApproverId = 'u1';
+    await trySave(w);
+    expect(replace).not.toHaveBeenCalled();
+    expect(w.text()).toContain('Backup must differ from the approver');
   });
 });

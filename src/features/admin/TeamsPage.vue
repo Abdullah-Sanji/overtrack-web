@@ -43,7 +43,11 @@ const columns: ColumnDef<TeamSummary, unknown>[] = [
     cell: ({ row }) =>
       row.original.chainStepCount === 0
         ? h(Badge, { tone: 'warning' }, () => [h(AlertTriangle, { class: 'h-4 w-4' }), 'No chain'])
-        : h('span', { class: 'num' }, `${row.original.chainStepCount} steps`),
+        : h(
+            'span',
+            { class: 'num' },
+            `${row.original.chainStepCount} ${row.original.chainStepCount === 1 ? 'step' : 'steps'}`,
+          ),
   },
   {
     accessorKey: 'isActive',
