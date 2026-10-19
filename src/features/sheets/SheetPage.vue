@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue';
 import { Plus } from 'lucide-vue-next';
 import type { EntryView } from '@/api/types';
+import { useQuery } from '@tanstack/vue-query';
 import { sheetsApi } from '@/api/sheets.api';
+import { workflowApi } from '@/api/workflow.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatPeriod, fullName } from '@/lib/format';
 import { messageFor } from '@/api/errors';
@@ -12,11 +14,18 @@ import { useSheet } from './useSheet';
 import SheetTotals from './components/SheetTotals.vue';
 import EntriesTable from './components/EntriesTable.vue';
 import EntryForm from './components/EntryForm.vue';
+import SheetActions from './components/SheetActions.vue';
+import RejectionBanner from './components/RejectionBanner.vue';
+import ApprovalTimeline from './components/ApprovalTimeline.vue';
 
 const props = defineProps<{ id: string }>();
 const auth = useAuthStore();
 const { toast } = useToast();
 const { sheet, invalidate } = useSheet(props.id);
+const timeline = useQuery({
+  queryKey: ['timeline', props.id],
+  queryFn: () => workflowApi.timeline(props.id),
+});
 const isOwner = computed(() => sheet.data.value?.employee.id === auth.user?.id);
 const editable = computed(
   () => isOwner.value && (sheet.data.value?.status === 'draft' || sheet.data.value?.status === 'rejected'),
@@ -76,6 +85,11 @@ async function confirmRemove() {
       </template>
     </PageHeader>
     <div class="space-y-6">
+      <RejectionBanner
+        v-if="sheet.data.value.status === 'rejected' && sheet.data.value.rejectionReason"
+        :reason="sheet.data.value.rejectionReason"
+        :rejected-at="sheet.data.value.rejectedAt"
+      />
       <SheetTotals :sheet="sheet.data.value" />
       <EntriesTable
         :entries="sheet.data.value.entries"
@@ -86,7 +100,13 @@ async function confirmRemove() {
       >
         <template #empty-action><Button v-if="editable" @click="add">Add entry</Button></template>
       </EntriesTable>
-      <div id="sheet-actions" />
+      <ApprovalTimeline v-if="timeline.data.value" :timeline="timeline.data.value" />
+      <SheetActions
+        :sheet="sheet.data.value"
+        :is-owner="isOwner"
+        :role="auth.user!.role"
+        :invalidate="invalidate"
+      />
     </div>
     <EntryForm
       v-model:open="formOpen"
