@@ -31,7 +31,6 @@ const display = (v: string | null) => props.options.find((o) => o.value === v)?.
   <ComboboxRoot
     :model-value="modelValue ?? undefined"
     :disabled="disabled"
-    :display-value="display"
     ignore-filter
     @update:model-value="emit('update:modelValue', ($event as string) ?? null)"
   >
@@ -41,6 +40,7 @@ const display = (v: string | null) => props.options.find((o) => o.value === v)?.
     >
       <ComboboxInput
         :id="id"
+        :display-value="display"
         :placeholder="placeholder ?? 'Search…'"
         class="h-full w-full bg-transparent px-3 text-base outline-none placeholder:text-muted-foreground"
         @input="term = ($event.target as HTMLInputElement).value"

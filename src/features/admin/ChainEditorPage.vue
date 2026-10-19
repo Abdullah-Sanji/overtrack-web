@@ -21,9 +21,21 @@ const users = useQuery({
   queryKey: ['users', 'pickers'],
   queryFn: () => usersApi.list({ isActive: 'true', pageSize: 100 }),
 });
-const people = computed(() =>
-  (users.data.value?.data ?? []).map((u) => ({ value: u.id, label: fullName(u) })),
-);
+const inactivePeople = computed(() => {
+  const found = new Map<string, ChainStepView['approver']>();
+  for (const s of chain.data.value ?? []) {
+    for (const p of [s.approver, s.backupApprover]) if (p && !p.isActive) found.set(p.id, p);
+  }
+  return [...found.values()];
+});
+const people = computed(() => {
+  const active = (users.data.value?.data ?? []).map((u) => ({ value: u.id, label: fullName(u) }));
+  const ids = new Set(active.map((o) => o.value));
+  const inactive = inactivePeople.value
+    .filter((p) => !ids.has(p.id))
+    .map((p) => ({ value: p.id, label: `${fullName(p)} (inactive)` }));
+  return [...active, ...inactive];
+});
 
 interface Step {
   key: number;
@@ -126,12 +138,20 @@ defineExpose({ steps });
       <Button data-action="save" :loading="saving" :disabled="!dirty" @click="save">Save chain</Button>
     </template>
   </PageHeader>
-  <Skeleton v-if="chain.isPending.value" :lines="4" />
+  <Skeleton v-if="chain.isPending.value || users.isPending.value" :lines="4" />
   <p v-else-if="chain.isError.value" role="alert" class="text-sm text-destructive">
     {{ messageFor(chain.error.value) }}
     <Button variant="outline" size="sm" @click="chain.refetch()">Retry</Button>
   </p>
   <template v-else>
+    <p
+      v-if="inactivePeople.length > 0"
+      role="alert"
+      class="mb-4 flex items-center gap-2 rounded-card border border-warning/40 bg-warning/10 px-4 py-3 text-sm"
+    >
+      <AlertTriangle class="h-4 w-4 text-warning" />One or more approvers on this chain are inactive; replace
+      them before saving.
+    </p>
     <p
       v-if="steps.length === 0"
       role="alert"

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import ChainEditorPage from './ChainEditorPage.vue';
+import { chainsApi } from '@/api/chains.api';
 
 const replace = vi.fn(async (_t: string, steps: unknown[]) =>
   steps.map((s, i) => ({
@@ -14,7 +15,7 @@ const replace = vi.fn(async (_t: string, steps: unknown[]) =>
 );
 vi.mock('@/api/chains.api', () => ({
   chainsApi: {
-    get: vi.fn(async () => []),
+    get: vi.fn(async (): Promise<unknown[]> => []),
     replace: (...a: unknown[]) => replace(...(a as [string, unknown[]])),
   },
 }));
@@ -61,6 +62,26 @@ describe('ChainEditorPage', () => {
       { label: 'CTO', approverId: 'u2', backupApproverId: null },
       { label: 'TL', approverId: 'u1', backupApproverId: null },
     ]);
+  });
+
+  it('warns about inactive approvers and labels them in the options', async () => {
+    vi.mocked(chainsApi.get).mockResolvedValueOnce([
+      {
+        id: 's1',
+        position: 1,
+        label: 'TL',
+        approver: { id: 'u9', firstName: 'Old', lastName: 'Timer', isActive: false },
+        backupApprover: null,
+      },
+    ]);
+    const w = mount(ChainEditorPage, {
+      props: { id: 't1' },
+      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+    });
+    await flushPromises();
+    expect(w.text()).toContain('approvers on this chain are inactive');
+    const input = w.find('input[id^="approver-"]').element as HTMLInputElement;
+    expect(input.value).toContain('Old Timer (inactive)');
   });
 
   async function mountEditor() {
