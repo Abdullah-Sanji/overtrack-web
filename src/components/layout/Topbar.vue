@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Menu } from 'lucide-vue-next';
 import { useUiStore } from '@/stores/ui.store';
+import NotificationsMenu from './NotificationsMenu.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import UserMenu from './UserMenu.vue';
 const ui = useUiStore();
@@ -18,6 +19,7 @@ const ui = useUiStore();
     <span class="font-semibold text-primary lg:hidden">OverTrack</span>
     <div class="ml-auto flex items-center gap-1">
       <slot name="right" />
+      <NotificationsMenu />
       <ThemeToggle />
       <UserMenu />
     </div>

@@ -26,6 +26,13 @@ vi.mock('@/api/inbox.api', () => ({
     list: vi.fn(async () => ({ data: [], meta: { page: 1, pageSize: 1, total: 4 } })),
   },
 }));
+vi.mock('@/api/notifications.api', () => ({
+  notificationsApi: {
+    list: vi.fn(async () => ({ data: [], meta: { page: 1, pageSize: 10, total: 0, unread: 0 } })),
+    markRead: vi.fn(),
+    markAllRead: vi.fn(),
+  },
+}));
 
 describe('DashboardPage', () => {
   it('shows month tiles and the waiting count', async () => {

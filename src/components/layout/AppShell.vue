@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { RouterView } from 'vue-router';
 import {
   DialogRoot,
@@ -9,9 +10,13 @@ import {
   DialogDescription,
 } from 'reka-ui';
 import { useUiStore } from '@/stores/ui.store';
+import { useNotificationsStore } from '@/stores/notifications.store';
 import Sidebar from './Sidebar.vue';
 import Topbar from './Topbar.vue';
 const ui = useUiStore();
+const notifications = useNotificationsStore();
+onMounted(() => notifications.startPolling());
+onUnmounted(() => notifications.stopPolling());
 </script>
 <template>
   <div class="min-h-dvh lg:flex">
@@ -23,7 +28,7 @@ const ui = useUiStore();
       <div class="flex h-14 items-center px-4 font-semibold text-primary">
         {{ ui.sidebarCollapsed ? 'OT' : 'OverTrack' }}
       </div>
-      <Sidebar :collapsed="ui.sidebarCollapsed" />
+      <Sidebar :collapsed="ui.sidebarCollapsed" :inbox-count="notifications.waitingCount" />
     </aside>
     <DialogRoot :open="ui.mobileNavOpen" @update:open="ui.mobileNavOpen = $event">
       <DialogPortal>
@@ -31,7 +36,7 @@ const ui = useUiStore();
         <DialogContent class="fixed inset-y-0 left-0 z-50 w-72 bg-surface shadow-dialog lg:hidden">
           <DialogTitle class="flex h-14 items-center px-4 font-semibold text-primary">OverTrack</DialogTitle>
           <DialogDescription class="sr-only">Main navigation</DialogDescription>
-          <Sidebar />
+          <Sidebar :inbox-count="notifications.waitingCount" />
         </DialogContent>
       </DialogPortal>
     </DialogRoot>
