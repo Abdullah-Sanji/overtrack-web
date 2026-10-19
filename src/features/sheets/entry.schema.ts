@@ -32,6 +32,7 @@ export function entrySchema(period: string, today: string) {
         .string()
         .trim()
         .url('Enter a valid URL')
+        .refine((u) => /^https?:\/\//i.test(u), 'Must start with http:// or https://')
         .or(z.literal(''))
         .transform((v) => (v === '' ? null : v)),
       description: z.string().trim().min(10, 'Describe the work (at least 10 characters)').max(1000),

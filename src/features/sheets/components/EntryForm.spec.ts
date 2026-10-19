@@ -41,4 +41,39 @@ describe('EntryForm', () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('Pick a date'));
     w.unmount();
   });
+
+  it('keeps saved hours in edit mode and is not dirty', async () => {
+    const confirmSpy = vi.fn(() => true);
+    vi.stubGlobal('confirm', confirmSpy);
+    const entry = {
+      id: 'e1',
+      date: '2026-09-10',
+      startTime: '18:00',
+      endTime: '20:30',
+      hours: 3,
+      multiplier: 1.5,
+      weightedHours: 4.5,
+      overtimeType: { id: '11111111-1111-4111-8111-111111111111', name: 'Weekday', color: '#000' },
+      workItem: 'PROJ-1',
+      workItemUrl: null,
+      description: 'Hotfix for payments',
+      requestedBy: null,
+      attachment: null,
+    };
+    const w = mount(EntryForm, {
+      props: { open: true, sheetId: 's1', period: '2026-09', entry },
+      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      attachTo: document.body,
+    });
+    await flushPromises();
+    expect((document.body.querySelector('#hours') as HTMLInputElement).value).toBe('3');
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Cancel',
+    );
+    cancel!.click();
+    await flushPromises();
+    expect(confirmSpy).not.toHaveBeenCalled();
+    w.unmount();
+    vi.unstubAllGlobals();
+  });
 });

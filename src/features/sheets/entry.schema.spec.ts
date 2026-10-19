@@ -27,6 +27,10 @@ describe('entrySchema', () => {
     expect(s.safeParse({ ...base, endTime: '17:00' }).error?.issues[0].path).toEqual(['endTime']);
     expect(s.safeParse({ ...base, hours: 1.3 }).success).toBe(false);
   });
+  it('only accepts http(s) work item URLs', () => {
+    expect(s.safeParse({ ...base, workItemUrl: 'javascript:alert(1)' }).success).toBe(false);
+    expect(s.safeParse({ ...base, workItemUrl: 'https://x.y' }).success).toBe(true);
+  });
   it('treats empty url as null', () => {
     expect(s.parse(base).workItemUrl).toBeNull();
   });

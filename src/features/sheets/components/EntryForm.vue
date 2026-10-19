@@ -109,7 +109,8 @@ watch(
   (o) => {
     if (!o) return;
     formError.value = '';
-    hoursTouched.value = false;
+    // Edit mode keeps the saved hours; only create mode auto-derives them.
+    hoursTouched.value = Boolean(props.entry);
     const e = props.entry;
     resetForm({
       values: e

@@ -40,7 +40,7 @@ const columns: ColumnDef<EntryView, unknown>[] = [
     id: 'work',
     header: 'Work item',
     cell: ({ row }) =>
-      row.original.workItemUrl
+      row.original.workItemUrl && /^https?:\/\//i.test(row.original.workItemUrl)
         ? h(
             'a',
             {
