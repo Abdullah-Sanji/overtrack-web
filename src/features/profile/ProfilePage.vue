@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -67,6 +67,9 @@ const [confirm, confirmAttrs] = pw.defineField('confirm', {
   validateOnModelUpdate: true,
 });
 const pwError = ref('');
+watch(newPassword, () => {
+  if (confirm.value) pw.validateField('confirm');
+});
 const savePassword = pw.handleSubmit(async (v) => {
   pwError.value = '';
   try {
@@ -80,9 +83,13 @@ const savePassword = pw.handleSubmit(async (v) => {
     return;
   }
   // The API revokes every refresh session on a password change, so sign out.
+  pw.resetForm();
   toast({ title: 'Password changed. Please sign in again.', tone: 'success' });
-  await auth.logout();
-  router.push({ name: 'login' });
+  try {
+    await auth.logout();
+  } finally {
+    router.push({ name: 'login' });
+  }
 });
 </script>
 
@@ -128,7 +135,7 @@ const savePassword = pw.handleSubmit(async (v) => {
           label="Timezone"
           name="timezone"
           :error="profile.errors.value.timezone"
-          hint="Used to decide which dates count as 'today' for your entries"
+          hint="IANA name, e.g. Europe/Berlin. Used to decide which dates count as today for your entries."
           required
         >
           <template #default="{ id, invalid }">

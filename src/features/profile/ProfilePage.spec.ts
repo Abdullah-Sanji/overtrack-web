@@ -76,6 +76,7 @@ describe('ProfilePage', () => {
       expect(authApi.changePassword).toHaveBeenCalledWith('Password123!', 'NewPassword123!'),
     );
     await vi.waitFor(() => expect(logout).toHaveBeenCalled());
-    expect(push).toHaveBeenCalledWith({ name: 'login' });
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith({ name: 'login' }));
+    expect((w.find('#currentPassword').element as HTMLInputElement).value).toBe('');
   });
 });
