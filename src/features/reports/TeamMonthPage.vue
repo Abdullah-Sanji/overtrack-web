@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@tanstack/vue-query';
+import { useAuthStore } from '@/stores/auth.store';
 import { teamsApi } from '@/api/teams.api';
 import { reportsApi } from '@/api/reports.api';
 import { currentPeriod } from '@/lib/dates';
@@ -9,6 +10,7 @@ import { messageFor } from '@/api/errors';
 import { PageHeader, Select, FormField, EmptyState, Skeleton, Button } from '@/components/ui';
 import TeamMonthTable from './components/TeamMonthTable.vue';
 import ExportButton from './components/ExportButton.vue';
+const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const teamId = ref<string | null>((route.query.teamId as string) || null);
@@ -27,7 +29,10 @@ const teamOptions = computed(() =>
 watch(
   teamOptions,
   (o) => {
-    if (!teamId.value && o[0]) teamId.value = o[0].value;
+    if (!o.length) return;
+    if (teamId.value && o.some((x) => x.value === teamId.value)) return;
+    const own = auth.user?.teamId;
+    teamId.value = o.find((x) => x.value === own)?.value ?? o[0].value;
   },
   { immediate: true },
 );
