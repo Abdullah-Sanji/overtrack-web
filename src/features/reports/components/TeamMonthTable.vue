@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { useOpenAttachment } from '@/features/sheets/useOpenAttachment';
 import { computed, h } from 'vue';
 import { useRouter } from 'vue-router';
 import type { ColumnDef } from '@tanstack/vue-table';
 import type { TeamMonthReport, TeamMonthRow } from '@/api/types';
 import { formatHours, formatDate, fullName } from '@/lib/format';
-import { sheetsApi } from '@/api/sheets.api';
 import { DataTable, StatusBadge } from '@/components/ui';
 import EntriesTable from '@/features/sheets/components/EntriesTable.vue';
+const openAttachment = useOpenAttachment();
 const props = defineProps<{ report: TeamMonthReport; loading?: boolean }>();
 const router = useRouter();
 const columns = computed<ColumnDef<TeamMonthRow, unknown>[]>(() => [
@@ -69,10 +70,7 @@ const columns = computed<ColumnDef<TeamMonthRow, unknown>[]>(() => [
       @row-click="$event.sheet && router.push({ name: 'sheet', params: { id: $event.sheet.id } })"
     >
       <template #expanded="{ row }"
-        ><EntriesTable
-          :entries="row.entries"
-          :editable="false"
-          @open-attachment="sheetsApi.openAttachment($event)"
+        ><EntriesTable :entries="row.entries" :editable="false" @open-attachment="openAttachment"
       /></template>
       <template #footer>
         <td />

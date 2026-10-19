@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { useOpenAttachment } from '@/features/sheets/useOpenAttachment';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { Check, X } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth.store';
 import { workflowApi } from '@/api/workflow.api';
-import { sheetsApi } from '@/api/sheets.api';
 import { formatPeriod, fullName } from '@/lib/format';
 import { messageFor } from '@/api/errors';
 import { PageHeader, Button, StatusBadge, Skeleton, EmptyState } from '@/components/ui';
@@ -15,6 +15,7 @@ import SheetTotals from '@/features/sheets/components/SheetTotals.vue';
 import EntriesTable from '@/features/sheets/components/EntriesTable.vue';
 import ApprovalTimeline from '@/features/sheets/components/ApprovalTimeline.vue';
 import DecisionDialog from './components/DecisionDialog.vue';
+const openAttachment = useOpenAttachment();
 const props = defineProps<{ id: string }>();
 const auth = useAuthStore();
 const router = useRouter();
@@ -74,11 +75,7 @@ async function decide(p: { comment: string; overrideReason?: string }) {
     ></PageHeader>
     <div class="space-y-6">
       <SheetTotals :sheet="sheet.data.value" />
-      <EntriesTable
-        :entries="sheet.data.value.entries"
-        :editable="false"
-        @open-attachment="sheetsApi.openAttachment($event)"
-      />
+      <EntriesTable :entries="sheet.data.value.entries" :editable="false" @open-attachment="openAttachment" />
       <ApprovalTimeline v-if="timeline.data.value" :timeline="timeline.data.value" />
     </div>
     <div

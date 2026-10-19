@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useOpenAttachment } from './useOpenAttachment';
 import { computed, ref } from 'vue';
 import { Plus } from 'lucide-vue-next';
 import type { EntryView } from '@/api/types';
@@ -18,6 +19,7 @@ import SheetActions from './components/SheetActions.vue';
 import RejectionBanner from './components/RejectionBanner.vue';
 import ApprovalTimeline from './components/ApprovalTimeline.vue';
 
+const openAttachment = useOpenAttachment();
 const props = defineProps<{ id: string }>();
 const auth = useAuthStore();
 const { toast } = useToast();
@@ -96,7 +98,7 @@ async function confirmRemove() {
         :editable="editable"
         @edit="edit"
         @remove="removing = $event"
-        @open-attachment="sheetsApi.openAttachment($event)"
+        @open-attachment="openAttachment"
       >
         <template #empty-action><Button v-if="editable" @click="add">Add entry</Button></template>
       </EntriesTable>

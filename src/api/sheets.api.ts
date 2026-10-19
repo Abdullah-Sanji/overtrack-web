@@ -1,4 +1,5 @@
 import { get, post, patch, del, request, API_URL } from './client';
+import { downloadResponse } from '@/lib/download';
 import type { Paged, SheetSummary, SheetDetail, EntryView } from './types';
 
 export interface EntryInput {
@@ -44,9 +45,22 @@ export const sheetsApi = {
   deleteAttachment: (sheetId: string, entryId: string) =>
     del<void>(`/sheets/${sheetId}/entries/${entryId}/attachment`),
   openAttachment: async (id: string) => {
-    const res = await request<Response>('GET', `/attachments/${id}`, { raw: true });
+    // Open synchronously (inside the user gesture) so the popup is not blocked.
+    const w = window.open('', '_blank');
+    let res: Response;
+    try {
+      res = await request<Response>('GET', `/attachments/${id}`, { raw: true });
+    } catch (e) {
+      w?.close();
+      throw e;
+    }
+    if (!w) {
+      await downloadResponse(res, 'attachment');
+      return;
+    }
     const url = URL.createObjectURL(await res.blob());
-    window.open(url, '_blank', 'noopener');
+    w.opener = null;
+    w.location.href = url;
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   },
   attachmentUrl: (id: string) => `${API_URL}/attachments/${id}`,
