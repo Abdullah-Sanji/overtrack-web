@@ -104,6 +104,10 @@ const submit = handleSubmit(async (v) => {
 function beforeClose(e: Event) {
   if (meta.value.dirty && !confirm('Discard unsaved changes?')) e.preventDefault();
 }
+function requestClose() {
+  if (meta.value.dirty && !confirm('Discard unsaved changes?')) return;
+  emit('update:open', false);
+}
 </script>
 <template>
   <Drawer
@@ -220,7 +224,7 @@ function beforeClose(e: Event) {
       </FormField>
     </form>
     <template #footer>
-      <Button variant="outline" @click="emit('update:open', false)">Cancel</Button>
+      <Button variant="outline" @click="requestClose">Cancel</Button>
       <Button type="submit" form="user-form" :loading="isSubmitting">{{
         user ? 'Save changes' : 'Send invite'
       }}</Button>
