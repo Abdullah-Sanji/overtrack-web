@@ -13,10 +13,11 @@ export const workflowApi = {
   markPaid: (id: string, version: number, paymentReference: string, paidAt?: string) =>
     act(id, 'mark-paid', { version, paymentReference, paidAt }),
   revertPaid: (id: string, version: number, reason: string) => act(id, 'revert-paid', { version, reason }),
-  markPaidBulk: (sheets: Array<{ id: string; version: number }>, paymentReference: string) =>
+  markPaidBulk: (sheets: Array<{ id: string; version: number }>, paymentReference: string, paidAt?: string) =>
     post<{ data: { paid: string[]; failed: Array<{ id: string; code: string }> } }>('/sheets/mark-paid', {
       sheets,
       paymentReference,
+      paidAt,
     }).then((r) => r.data),
   timeline: (id: string) => get<{ data: Timeline }>(`/sheets/${id}/timeline`).then((r) => r.data),
 };
