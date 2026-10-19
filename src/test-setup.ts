@@ -17,3 +17,4 @@ window.matchMedia ??= ((q: string) => ({
   dispatchEvent: () => false,
 })) as unknown as typeof window.matchMedia;
 config.global.stubs = { teleport: true };
+config.global.renderStubDefaultSlot = true;

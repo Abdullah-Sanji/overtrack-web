@@ -1,0 +1,13 @@
+import { describe, it, expect, vi } from 'vitest';
+import { useToast } from './useToast';
+describe('useToast', () => {
+  it('adds and auto-removes after 4s', () => {
+    vi.useFakeTimers();
+    const { toast, toasts } = useToast();
+    toast({ title: 'Saved', tone: 'success' });
+    expect(toasts.value).toHaveLength(1);
+    vi.advanceTimersByTime(4000);
+    expect(toasts.value).toHaveLength(0);
+    vi.useRealTimers();
+  });
+});
