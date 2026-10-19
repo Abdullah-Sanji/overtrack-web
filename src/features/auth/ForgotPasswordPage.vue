@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { focusFirstInvalid } from '@/lib/forms';
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useForm } from 'vee-validate';
@@ -24,7 +25,7 @@ const submit = handleSubmit(async (v) => {
   } catch (e) {
     formError.value = messageFor(e);
   }
-});
+}, focusFirstInvalid);
 </script>
 <template>
   <AuthCard

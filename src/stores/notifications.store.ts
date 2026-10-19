@@ -65,5 +65,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
     () => items.value.filter((i) => !i.readAt && i.type === 'sheet.submitted').length,
   );
 
-  return { items, unread, loaded, load, markRead, markAllRead, startPolling, stopPolling, reset, waitingCount };
+  return {
+    items,
+    unread,
+    loaded,
+    load,
+    markRead,
+    markAllRead,
+    startPolling,
+    stopPolling,
+    reset,
+    waitingCount,
+  };
 });

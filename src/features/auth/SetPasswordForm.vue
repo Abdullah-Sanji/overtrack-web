@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { focusFirstInvalid } from '@/lib/forms';
 import { ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -33,7 +34,7 @@ const submit = handleSubmit(async (v) => {
     setErrors(fieldErrors(e));
     formError.value = messageFor(e);
   }
-});
+}, focusFirstInvalid);
 </script>
 <template>
   <form class="space-y-4" novalidate @submit.prevent="submit">

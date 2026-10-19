@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { focusFirstInvalid } from '@/lib/forms';
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useForm } from 'vee-validate';
@@ -43,7 +44,7 @@ const saveProfile = profile.handleSubmit(async (v) => {
     profile.setErrors(fieldErrors(e));
     toast({ title: messageFor(e), tone: 'error' });
   }
-});
+}, focusFirstInvalid);
 
 const pw = useForm({
   validationSchema: toTypedSchema(
@@ -90,7 +91,7 @@ const savePassword = pw.handleSubmit(async (v) => {
   } finally {
     router.push({ name: 'login' });
   }
-});
+}, focusFirstInvalid);
 </script>
 
 <template>

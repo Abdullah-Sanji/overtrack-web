@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { focusFirstInvalid } from '@/lib/forms';
 import { ref } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { useForm } from 'vee-validate';
@@ -46,7 +47,7 @@ const submit = handleSubmit(async (v) => {
     setErrors(fieldErrors(e));
     formError.value = messageFor(e);
   }
-});
+}, focusFirstInvalid);
 </script>
 <template>
   <AuthCard title="Sign in" description="Use the email and password your admin gave you.">

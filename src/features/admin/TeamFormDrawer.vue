@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { focusFirstInvalid } from '@/lib/forms';
 import { computed, ref, watch } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -72,7 +73,7 @@ const submit = handleSubmit(async (v) => {
       formError.value = messageFor(e);
     }
   }
-});
+}, focusFirstInvalid);
 
 function beforeClose(e: Event) {
   if (meta.value.dirty && !confirm('Discard unsaved changes?')) e.preventDefault();
