@@ -17,13 +17,13 @@ const ui = useUiStore();
   <div class="min-h-dvh lg:flex">
     <a href="#main" class="skip-link">Skip to content</a>
     <aside
-      class="hidden border-r bg-surface lg:sticky lg:top-0 lg:block lg:h-dvh"
+      class="hidden flex-col border-r bg-surface lg:sticky lg:top-0 lg:flex lg:h-dvh"
       :class="ui.sidebarCollapsed ? 'w-16' : 'w-60'"
     >
       <div class="flex h-14 items-center px-4 font-semibold text-primary">
         {{ ui.sidebarCollapsed ? 'OT' : 'OverTrack' }}
       </div>
-      <Sidebar />
+      <Sidebar :collapsed="ui.sidebarCollapsed" />
     </aside>
     <DialogRoot :open="ui.mobileNavOpen" @update:open="ui.mobileNavOpen = $event">
       <DialogPortal>

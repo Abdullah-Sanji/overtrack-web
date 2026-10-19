@@ -16,7 +16,10 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useUiStore } from '@/stores/ui.store';
-const props = defineProps<{ inboxCount?: number }>();
+const props = withDefaults(defineProps<{ inboxCount?: number; collapsed?: boolean }>(), {
+  inboxCount: undefined,
+  collapsed: false,
+});
 const auth = useAuthStore();
 const ui = useUiStore();
 const items = computed(() =>
@@ -40,10 +43,10 @@ const items = computed(() =>
 );
 </script>
 <template>
-  <nav aria-label="Main" class="flex h-full flex-col gap-1 p-3">
+  <nav aria-label="Main" class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
     <template v-for="(it, idx) in items" :key="it.name">
       <p
-        v-if="it.group && items[idx - 1]?.group !== it.group && !ui.sidebarCollapsed"
+        v-if="it.group && items[idx - 1]?.group !== it.group && !props.collapsed"
         class="mt-4 px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
       >
         {{ it.group }}
@@ -54,16 +57,16 @@ const items = computed(() =>
           class="flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
           :class="isActive ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-muted'"
           :aria-current="isActive ? 'page' : undefined"
-          :title="ui.sidebarCollapsed ? it.label : undefined"
+          :title="props.collapsed ? it.label : undefined"
           @click="
             navigate($event);
             ui.mobileNavOpen = false;
           "
         >
           <component :is="it.icon" class="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span v-if="!ui.sidebarCollapsed" class="flex-1 truncate">{{ it.label }}</span>
+          <span v-if="!props.collapsed" class="flex-1 truncate">{{ it.label }}</span>
           <span
-            v-if="it.badge && !ui.sidebarCollapsed"
+            v-if="it.badge && !props.collapsed"
             class="num rounded-full bg-secondary px-2 text-xs text-on-secondary"
             >{{ it.badge }}</span
           >
@@ -73,12 +76,12 @@ const items = computed(() =>
     <button
       type="button"
       class="mt-auto hidden h-11 cursor-pointer items-center gap-3 rounded-control px-3 text-muted-foreground hover:bg-muted lg:flex"
-      :aria-label="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      :aria-label="props.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
       @click="ui.toggleSidebar()"
     >
-      <ChevronsRight v-if="ui.sidebarCollapsed" class="h-5 w-5" />
+      <ChevronsRight v-if="props.collapsed" class="h-5 w-5" />
       <ChevronsLeft v-else class="h-5 w-5" />
-      <span v-if="!ui.sidebarCollapsed">Collapse</span>
+      <span v-if="!props.collapsed">Collapse</span>
     </button>
   </nav>
 </template>
