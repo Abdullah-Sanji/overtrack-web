@@ -18,7 +18,7 @@ vi.mock('@/api/overtime-types.api', () => ({
   },
 }));
 vi.mock('@/api/users.api', () => ({
-  usersApi: { list: vi.fn(async () => ({ data: [], meta: { page: 1, pageSize: 100, total: 0 } })) },
+  usersApi: { directory: vi.fn(async () => []) },
 }));
 vi.mock('@/api/sheets.api', () => ({
   sheetsApi: { addEntry: vi.fn(async (_s: string, b: unknown) => ({ id: 'e1', ...(b as object) })) },
@@ -75,5 +75,35 @@ describe('EntryForm', () => {
     expect(confirmSpy).not.toHaveBeenCalled();
     w.unmount();
     vi.unstubAllGlobals();
+  });
+
+  it('re-derives hours in edit mode when saved hours equal the time span', async () => {
+    const entry = {
+      id: 'e2',
+      date: '2026-09-10',
+      startTime: '18:00',
+      endTime: '20:30',
+      hours: 2.5,
+      multiplier: 1.5,
+      weightedHours: 3.75,
+      overtimeType: { id: '11111111-1111-4111-8111-111111111111', name: 'Weekday', color: '#000' },
+      workItem: 'PROJ-1',
+      workItemUrl: null,
+      description: 'Hotfix for payments',
+      requestedBy: null,
+      attachment: null,
+    };
+    const w = mount(EntryForm, {
+      props: { open: true, sheetId: 's1', period: '2026-09', entry },
+      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      attachTo: document.body,
+    });
+    await flushPromises();
+    const end = document.body.querySelector('#endTime') as HTMLInputElement;
+    end.value = '21:30';
+    end.dispatchEvent(new Event('input', { bubbles: true }));
+    await flushPromises();
+    expect((document.body.querySelector('#hours') as HTMLInputElement).value).toBe('3.5');
+    w.unmount();
   });
 });

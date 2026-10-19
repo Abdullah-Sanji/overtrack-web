@@ -9,6 +9,13 @@ export interface UserInput {
   employeeCode?: string | null;
   timezone?: string;
 }
+export interface DirectoryUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  teamId: string | null;
+  role: UserRole;
+}
 export const usersApi = {
   list: (
     q: {
@@ -20,6 +27,8 @@ export const usersApi = {
       pageSize?: number;
     } = {},
   ) => get<Paged<PublicUser>>('/users', q),
+  directory: (search?: string) =>
+    get<{ data: DirectoryUser[] }>('/users/directory', { search }).then((r) => r.data),
   get: (id: string) => get<{ data: PublicUser }>(`/users/${id}`).then((r) => r.data),
   create: (b: UserInput) => post<{ data: PublicUser }>('/users', b).then((r) => r.data),
   update: (id: string, b: Partial<Omit<UserInput, 'email'>>) =>

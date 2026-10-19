@@ -30,8 +30,8 @@ const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [e: EntryView] }>
 const { toast } = useToast();
 const types = useQuery({ queryKey: ['overtime-types'], queryFn: () => overtimeTypesApi.list() });
 const people = useQuery({
-  queryKey: ['users', 'pickers'],
-  queryFn: () => usersApi.list({ isActive: 'true', pageSize: 100 }),
+  queryKey: ['users', 'directory'],
+  queryFn: () => usersApi.directory(),
 });
 const typeOptions = computed(() =>
   (types.data.value ?? []).map((t) => ({
@@ -41,7 +41,7 @@ const typeOptions = computed(() =>
   })),
 );
 const peopleOptions = computed(() =>
-  (people.data.value?.data ?? []).map((u) => ({ value: u.id, label: fullName(u) })),
+  (people.data.value ?? []).map((u) => ({ value: u.id, label: fullName(u) })),
 );
 const bounds = computed(() => periodBounds(props.period));
 
@@ -90,18 +90,20 @@ const requestedById = computed<string | null>({
   set: (v) => (requestedByIdModel.value = v),
 });
 function onHours(v: string | number) {
-  hoursTouched.value = true;
   hours.value = v === '' ? undefined : Number(v);
 }
 // Kept in script: a literal "https://" in a template attribute trips vue-tsc.
 const urlPlaceholder = 'https://';
 const formError = ref('');
-const hoursTouched = ref(false);
+const lastDerived = ref<number | null>(null);
 
 watch([startTimeModel, endTimeModel], ([s, e]) => {
-  if (!hoursTouched.value && s && e) {
+  if (s && e && (hours.value === undefined || hours.value === lastDerived.value)) {
     const d = deriveHours(s, e);
-    if (d > 0) hours.value = d;
+    if (d > 0) {
+      hours.value = d;
+      lastDerived.value = d;
+    }
   }
 });
 watch(
@@ -109,9 +111,9 @@ watch(
   (o) => {
     if (!o) return;
     formError.value = '';
-    // Edit mode keeps the saved hours; only create mode auto-derives them.
-    hoursTouched.value = Boolean(props.entry);
     const e = props.entry;
+    // Hours keep auto-deriving only while they still equal the last derived value.
+    lastDerived.value = e ? deriveHours(e.startTime, e.endTime) : null;
     resetForm({
       values: e
         ? {
