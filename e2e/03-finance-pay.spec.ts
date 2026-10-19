@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers';
+import { login, goToNav } from './helpers';
 
 test('finance marks an approved sheet paid and downloads the export', async ({ page }) => {
   await login(page, 'finance@overtrack.local');
-  await page.getByRole('link', { name: 'Payments' }).click();
+  await goToNav(page, 'Payments');
   await page.getByRole('checkbox', { name: 'Select all' }).check();
   await page.getByRole('button', { name: /Mark paid \(/ }).click();
   await page.getByLabel('Payment reference').fill('E2E-BATCH');

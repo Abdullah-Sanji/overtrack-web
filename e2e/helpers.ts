@@ -15,3 +15,10 @@ export async function logout(page: Page) {
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/login/);
 }
+
+/** Click a sidebar link, opening the mobile navigation drawer first when the burger is shown. */
+export async function goToNav(page: Page, name: string) {
+  const burger = page.getByRole('button', { name: 'Open navigation' });
+  if (await burger.isVisible()) await burger.click();
+  await page.getByRole('link', { name }).click();
+}
