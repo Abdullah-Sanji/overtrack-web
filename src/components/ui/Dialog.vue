@@ -19,9 +19,7 @@ const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-3xl' };
 <template>
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
     <DialogPortal>
-      <DialogOverlay
-        class="fixed inset-0 z-40 bg-black/50 data-[state=open]:animate-in data-[state=open]:fade-in"
-      />
+      <DialogOverlay class="fixed inset-0 z-40 bg-black/50" />
       <DialogContent
         class="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-card border bg-surface p-6 shadow-dialog focus:outline-none"
         :class="widths[size]"

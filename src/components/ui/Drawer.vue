@@ -39,7 +39,6 @@ function requestClose(next: boolean) {
           <DialogClose
             class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-muted-foreground hover:bg-muted"
             aria-label="Close"
-            @click.prevent="requestClose(false)"
             ><X class="h-5 w-5"
           /></DialogClose>
         </div>
