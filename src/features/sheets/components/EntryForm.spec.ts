@@ -231,5 +231,35 @@ describe('EntryForm', () => {
       expect(document.body.textContent).toContain('Edit entry');
       w.unmount();
     });
+
+    it('offers an "Add attachment" toast action that emits attach with the saved entry', async () => {
+      const { useToast } = await import('@/components/ui/useToast');
+      const { toasts } = useToast();
+      toasts.value = [];
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      const savedEntry = await (sheetsApi.addEntry as ReturnType<typeof vi.fn>).mock.results[0].value;
+      const t = toasts.value.find((x) => x.title === 'Entry added');
+      expect(t?.action?.label).toBe('Add attachment');
+      t!.action!.onClick();
+      expect(w.emitted('attach')?.[0]).toEqual([savedEntry]);
+      w.unmount();
+    });
+
+    it('populates when entry is set while the drawer is already open', async () => {
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      const savedEntry = await (sheetsApi.addEntry as ReturnType<typeof vi.fn>).mock.results[0].value;
+      expect(val('#workItem')).toBe('');
+      await w.setProps({ entry: savedEntry });
+      await flushPromises();
+      expect(val('#workItem')).toBe('E2E-1');
+      expect(document.body.textContent).toContain('Edit entry');
+      w.unmount();
+    });
   });
 });

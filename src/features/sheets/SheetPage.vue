@@ -116,6 +116,7 @@ async function confirmRemove() {
       :period="sheet.data.value.period"
       :entry="editing"
       @saved="saved"
+      @attach="edit"
     />
     <ConfirmDialog
       :open="Boolean(removing)"

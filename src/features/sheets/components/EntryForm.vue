@@ -28,7 +28,7 @@ import {
 import { entrySchema, deriveHours } from '../entry.schema';
 
 const props = defineProps<{ open: boolean; sheetId: string; period: string; entry?: EntryView | null }>();
-const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [e: EntryView] }>();
+const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [e: EntryView]; attach: [e: EntryView] }>();
 const { toast } = useToast();
 const types = useQuery({ queryKey: ['overtime-types'], queryFn: () => overtimeTypesApi.list() });
 const people = useQuery({
@@ -114,8 +114,8 @@ function clear() {
   resetForm({ values: emptyValues() });
 }
 watch(
-  () => props.open,
-  (o) => {
+  [() => props.open, () => props.entry?.id],
+  ([o]) => {
     if (!o) {
       clear();
       return;
@@ -149,7 +149,11 @@ const submit = handleSubmit(async (v) => {
     const saved = props.entry
       ? await sheetsApi.updateEntry(props.sheetId, props.entry.id, v)
       : await sheetsApi.addEntry(props.sheetId, v);
-    toast({ title: props.entry ? 'Entry updated' : 'Entry added', tone: 'success' });
+    toast({
+      title: props.entry ? 'Entry updated' : 'Entry added',
+      tone: 'success',
+      action: props.entry ? undefined : { label: 'Add attachment', onClick: () => emit('attach', saved) },
+    });
     emit('saved', saved);
     if (props.entry) {
       emit('update:open', false);
@@ -347,7 +351,10 @@ async function removeAttachment() {
             <p class="mt-1 text-xs text-muted-foreground">PNG, JPEG or PDF, max 5 MB</p>
           </div>
         </template>
-        <p v-else class="mt-1 text-sm text-muted-foreground">Save the entry, then add an attachment.</p>
+        <p v-else class="mt-1 text-sm text-muted-foreground">
+          Add the entry first. To attach a file, use “Add attachment” in the confirmation message or edit the
+          entry later.
+        </p>
       </div>
     </form>
     <template #footer>
