@@ -77,6 +77,15 @@ function applyDefaultRole(list = roles.data.value) {
   else resetForm({ values: { ...initialValues(null), roleId: defaultRoleId(list) } });
 }
 watch(roles.data, (list) => applyDefaultRole(list), { immediate: true });
+const ROLES_ERROR = 'Roles could not be loaded.';
+watch(
+  () => roles.isError.value,
+  (failed) => {
+    if (failed) formError.value = ROLES_ERROR;
+    else if (formError.value === ROLES_ERROR) formError.value = '';
+  },
+  { immediate: true },
+);
 const teamOptions = computed(() => [
   { value: 'none', label: 'No team' },
   ...props.teams.map((t) => ({ value: t.id, label: t.name })),
@@ -86,7 +95,7 @@ watch(
   () => props.open,
   (o) => {
     if (!o) return;
-    formError.value = '';
+    formError.value = roles.isError.value ? ROLES_ERROR : '';
     resetForm({
       values: props.user ? initialValues(props.user) : { ...initialValues(null), roleId: defaultRoleId() },
     });
@@ -135,13 +144,16 @@ async function requestClose() {
     @update:open="emit('update:open', $event)"
   >
     <form id="user-form" class="space-y-4" novalidate @submit.prevent="submit">
-      <p
+      <div
         v-if="formError"
         role="alert"
-        class="rounded-control border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        class="flex items-center justify-between gap-2 rounded-control border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
       >
-        {{ formError }}
-      </p>
+        <span>{{ formError }}</span>
+        <Button v-if="roles.isError.value" type="button" variant="outline" size="sm" @click="roles.refetch()">
+          Retry
+        </Button>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <FormField label="First name" name="firstName" :error="errors.firstName" required>
           <template #default="{ id, invalid }">
@@ -243,9 +255,13 @@ async function requestClose() {
     </form>
     <template #footer>
       <Button variant="outline" @click="requestClose">Cancel</Button>
-      <Button type="submit" form="user-form" :loading="isSubmitting" :disabled="roles.isPending.value">{{
-        user ? 'Save changes' : 'Send invite'
-      }}</Button>
+      <Button
+        type="submit"
+        form="user-form"
+        :loading="isSubmitting"
+        :disabled="roles.isPending.value || roles.isError.value"
+        >{{ user ? 'Save changes' : 'Send invite' }}</Button
+      >
     </template>
   </Drawer>
 </template>

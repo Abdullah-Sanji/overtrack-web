@@ -16,7 +16,10 @@ const rolesList = vi.fn();
 vi.mock('@/api/roles.api', () => ({ rolesApi: { list: (...a: unknown[]) => rolesList(...a) } }));
 const plugins = () => [
   createTestingPinia({ stubActions: false, createSpy: vi.fn }),
-  [VueQueryPlugin, { queryClient: new QueryClient() }] as [typeof VueQueryPlugin, unknown],
+  [VueQueryPlugin, { queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }) }] as [
+    typeof VueQueryPlugin,
+    unknown,
+  ],
 ];
 const mountDrawer = () =>
   mount(UserFormDrawer, {
@@ -52,6 +55,24 @@ describe('UserFormDrawer', () => {
     await vi.waitFor(() => expect(create).toHaveBeenCalled());
     expect(create.mock.calls[0][0]).toMatchObject({ roleId: 'r-emp' });
     await vi.waitFor(() => expect(document.body.textContent).toContain('already in use'));
+    w.unmount();
+  });
+
+  it('shows a retryable error when roles fail to load', async () => {
+    rolesList.mockRejectedValueOnce(new Error('boom'));
+    const w = mountDrawer();
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Roles could not be loaded.'));
+    const retry = [...document.body.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Retry',
+    );
+    expect(retry).toBeTruthy();
+    const submitBtn = [...document.body.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Send invite',
+    );
+    expect(submitBtn!.hasAttribute('disabled')).toBe(true);
+    const calls = rolesList.mock.calls.length;
+    retry!.click();
+    await vi.waitFor(() => expect(rolesList.mock.calls.length).toBeGreaterThan(calls));
     w.unmount();
   });
 
