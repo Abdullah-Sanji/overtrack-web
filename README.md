@@ -36,8 +36,20 @@ another host.
 
 ```bash
 pnpm build
-docker build -t over-track-web .   # served by nginx, /api proxied to the api service (see over-track-api/docker-compose.prod.yml)
+docker build -t over-track-web .   # served by nginx, /api proxied to the api container
 ```
 
 The image is built with `VITE_API_URL=/api/v1` by default; override with
-`--build-arg VITE_API_URL=...`. Pass `--build-arg VITE_GOOGLE_CLIENT_ID=...` to bake in the Google button; `docker-compose.prod.yml` in the API repo forwards `GOOGLE_CLIENT_ID` for this.
+`--build-arg VITE_API_URL=...`.
+
+### Production stack
+`docker-compose.prod.yml` builds the image and runs nginx on port 80 (`WEB_PORT` to change), proxying `/api` to the
+API container over the shared `overtrack` Docker network. That network is created by the API stack
+(`over-track-api/docker-compose.prod.yml`), so bring the API up first; otherwise compose stops with
+"network overtrack declared as external, but could not be found".
+```bash
+VITE_GOOGLE_CLIENT_ID=… docker compose -f docker-compose.prod.yml up -d --build
+```
+nginx re-resolves the `api` name on each request, so the web container may start before the API and keeps working
+when the API container is recreated. `VITE_GOOGLE_CLIENT_ID` is baked into the bundle at build time, so rebuild the
+image when it changes (same client id as the API's `GOOGLE_CLIENT_ID`).
