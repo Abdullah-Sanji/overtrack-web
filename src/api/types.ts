@@ -28,6 +28,7 @@ export interface Person {
 export interface PublicUser extends Person {
   email: string;
   employeeCode: string | null;
+  department: string | null;
   role: RoleRef;
   teamId: string | null;
   timezone: string;

@@ -7,6 +7,7 @@ export interface UserInput {
   roleId: string;
   teamId?: string | null;
   employeeCode?: string | null;
+  department?: string | null;
   timezone?: string;
 }
 export interface DirectoryUser {
@@ -22,11 +23,13 @@ export const usersApi = {
       search?: string;
       roleId?: string;
       teamId?: string;
+      department?: string;
       isActive?: 'true' | 'false';
       page?: number;
       pageSize?: number;
     } = {},
   ) => get<Paged<PublicUser>>('/users', q),
+  departments: () => get<{ data: string[] }>('/users/departments').then((r) => r.data),
   directory: (search?: string) =>
     get<{ data: DirectoryUser[] }>('/users/directory', { search }).then((r) => r.data),
   get: (id: string) => get<{ data: PublicUser }>(`/users/${id}`).then((r) => r.data),

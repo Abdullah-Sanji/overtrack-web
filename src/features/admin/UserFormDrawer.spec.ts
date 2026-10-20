@@ -5,11 +5,15 @@ import { useConfirmStore } from '@/composables/useConfirm';
 import UserFormDrawer from './UserFormDrawer.vue';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import { ApiError } from '@/api/errors';
-import { ROLES } from '@/test/fixtures';
+import { ROLES, makeUser } from '@/test/fixtures';
 
 const create = vi.fn();
 vi.mock('@/api/users.api', () => ({
-  usersApi: { create: (...a: unknown[]) => create(...a), update: vi.fn() },
+  usersApi: {
+    create: (...a: unknown[]) => create(...a),
+    update: vi.fn(),
+    departments: vi.fn().mockResolvedValue(['Design']),
+  },
 }));
 
 const rolesList = vi.fn();
@@ -29,12 +33,48 @@ const mountDrawer = () =>
   });
 
 beforeEach(() => {
+  document.body.innerHTML = '';
   create.mockReset();
   rolesList.mockReset();
   rolesList.mockResolvedValue(Object.values(ROLES));
 });
 
 describe('UserFormDrawer', () => {
+  const set = (name: string, v: string) => {
+    const el = document.body.querySelector(`[name="${name}"]`) as HTMLInputElement;
+    el.value = v;
+    el.dispatchEvent(new Event('input'));
+  };
+  const fill = (first: string, last: string, email: string) => {
+    set('firstName', first);
+    set('lastName', last);
+    set('email', email);
+  };
+  const submit = () =>
+    (document.body.querySelector('form') as HTMLFormElement).dispatchEvent(
+      new Event('submit', { cancelable: true }),
+    );
+
+  it('sends department on create, and null when left blank', async () => {
+    create.mockResolvedValue(makeUser());
+    const w = mountDrawer();
+    await flushPromises();
+    fill('Ann', 'Lee', 'ann@x.test');
+    set('department', ' Design ');
+    submit();
+    await vi.waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][0]).toMatchObject({ department: 'Design' });
+    w.unmount();
+    create.mockClear();
+    const w2 = mountDrawer();
+    await flushPromises();
+    fill('Bo', 'Li', 'bo@x.test');
+    submit();
+    await vi.waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][0]).toMatchObject({ department: null });
+    w2.unmount();
+  });
+
   it('validates, then maps EMAIL_TAKEN to the email field', async () => {
     create.mockRejectedValueOnce(new ApiError(409, 'EMAIL_TAKEN', 'x'));
     const w = mountDrawer();

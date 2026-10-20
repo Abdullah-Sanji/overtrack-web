@@ -34,6 +34,7 @@ const { confirm } = useConfirm();
 const search = ref('');
 const debounced = ref('');
 const role = ref('all');
+const department = ref('all');
 const active = ref('true');
 const page = ref(1);
 const setSearch = useDebounceFn((v: string) => {
@@ -41,12 +42,13 @@ const setSearch = useDebounceFn((v: string) => {
   page.value = 1;
 }, 300);
 watch(search, setSearch);
-watch([role, active], () => {
+watch([role, department, active], () => {
   page.value = 1;
 });
 const params = computed(() => ({
   search: debounced.value || undefined,
   roleId: role.value === 'all' ? undefined : role.value,
+  department: department.value === 'all' ? undefined : department.value,
   isActive: active.value === 'all' ? undefined : (active.value as 'true' | 'false'),
   page: page.value,
 }));
@@ -55,6 +57,11 @@ const roles = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
 const roleOptions = computed(() => [
   { value: 'all', label: 'All roles' },
   ...(roles.data.value ?? []).map((r) => ({ value: r.id, label: r.name })),
+]);
+const departments = useQuery({ queryKey: ['users', 'departments'], queryFn: () => usersApi.departments() });
+const departmentOptions = computed(() => [
+  { value: 'all', label: 'All departments' },
+  ...(departments.data.value ?? []).map((d) => ({ value: d, label: d })),
 ]);
 const teams = useQuery({ queryKey: ['teams', 'all'], queryFn: () => teamsApi.list({ pageSize: 100 }) });
 const teamName = (id: string | null) => teams.data.value?.data.find((t) => t.id === id)?.name ?? '—';
@@ -149,6 +156,7 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
       ),
   },
   { id: 'team', header: 'Team', cell: ({ row }) => teamName(row.original.teamId) },
+  { id: 'department', header: 'Department', cell: ({ row }) => row.original.department ?? '—' },
   {
     accessorKey: 'isActive',
     header: 'Status',
@@ -216,7 +224,7 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
   <PageHeader title="Users" description="Invite people, assign roles and teams, deactivate leavers.">
     <template #actions><Button @click="invite">Invite user</Button></template>
   </PageHeader>
-  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+  <div class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <FormField label="Search" name="search">
       <template #default="{ id }">
         <Input :id="id" v-model="search" type="search" placeholder="Name or email" />
@@ -225,6 +233,11 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
     <FormField label="Role" name="role">
       <template #default="{ id }">
         <Select :id="id" v-model="role" :options="roleOptions" />
+      </template>
+    </FormField>
+    <FormField label="Department" name="department">
+      <template #default="{ id }">
+        <Select :id="id" v-model="department" :options="departmentOptions" />
       </template>
     </FormField>
     <FormField label="Status" name="active">

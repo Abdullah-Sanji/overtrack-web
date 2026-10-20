@@ -15,6 +15,7 @@ export function makeUser(o: Partial<Omit<PublicUser, 'role'>> & { level?: RoleLe
     lastName: 'Admin',
     email: 'ada@t.local',
     employeeCode: 'E1',
+    department: null,
     teamId: null,
     timezone: 'UTC',
     isActive: true,

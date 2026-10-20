@@ -26,6 +26,7 @@ const schema = toTypedSchema(
     roleId: z.string().min(1, 'Pick a role'),
     teamId: z.string().nullable(),
     employeeCode: z.string().trim().max(20).nullable(),
+    department: z.string().trim().max(60).nullable(),
     timezone: z.string().trim().min(1, 'Enter a timezone').max(64),
   }),
 );
@@ -38,6 +39,7 @@ function initialValues(u?: PublicUser | null) {
         roleId: u.role.id,
         teamId: u.teamId,
         employeeCode: u.employeeCode,
+        department: u.department,
         timezone: u.timezone,
       }
     : {
@@ -47,6 +49,7 @@ function initialValues(u?: PublicUser | null) {
         roleId: '',
         teamId: null,
         employeeCode: null,
+        department: null,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 }
@@ -61,6 +64,8 @@ const [email, emailAttrs] = defineField('email', blurOnly);
 const [roleId] = defineField('roleId');
 const [teamId] = defineField('teamId');
 const [employeeCode, employeeCodeAttrs] = defineField('employeeCode', blurOnly);
+const [department, departmentAttrs] = defineField('department', blurOnly);
+const departments = useQuery({ queryKey: ['users', 'departments'], queryFn: () => usersApi.departments() });
 const [timezone, timezoneAttrs] = defineField('timezone', blurOnly);
 const formError = ref('');
 const roles = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
@@ -105,7 +110,7 @@ watch(
 const submit = handleSubmit(async (v) => {
   formError.value = '';
   try {
-    const body = { ...v, employeeCode: v.employeeCode || null };
+    const body = { ...v, employeeCode: v.employeeCode || null, department: v.department || null };
     const saved = props.user
       ? await usersApi.update(props.user.id, {
           firstName: body.firstName,
@@ -113,6 +118,7 @@ const submit = handleSubmit(async (v) => {
           roleId: body.roleId,
           teamId: body.teamId,
           employeeCode: body.employeeCode,
+          department: body.department,
           timezone: body.timezone,
         })
       : await usersApi.create(body);
@@ -219,6 +225,22 @@ async function requestClose() {
             :options="teamOptions"
             @update:model-value="teamId = $event === 'none' ? null : $event"
           />
+        </template>
+      </FormField>
+      <FormField label="Department" name="department" :error="errors.department">
+        <template #default="{ id, invalid }">
+          <Input
+            :id="id"
+            :model-value="department ?? ''"
+            v-bind="departmentAttrs"
+            name="department"
+            list="department-suggestions"
+            :invalid="invalid"
+            @update:model-value="department = $event"
+          />
+          <datalist id="department-suggestions">
+            <option v-for="d in departments.data.value ?? []" :key="d" :value="d" />
+          </datalist>
         </template>
       </FormField>
       <FormField label="Employee code" name="employeeCode" :error="errors.employeeCode">

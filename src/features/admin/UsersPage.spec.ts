@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/components/ui/useToast';
 import { ApiError } from '@/api/errors';
 import { makeUser, ROLES } from '@/test/fixtures';
+import { Select } from '@/components/ui';
 import UsersPage from './UsersPage.vue';
 
 const list = vi.fn();
@@ -16,6 +17,7 @@ vi.mock('@/api/users.api', () => ({
     list: (...a: unknown[]) => list(...a),
     remove: (...a: unknown[]) => remove(...a),
     resendInvite: vi.fn(),
+    departments: vi.fn().mockResolvedValue(['Design', 'Engineering']),
     deactivate: vi.fn(),
     reactivate: vi.fn(),
   },
@@ -58,6 +60,25 @@ beforeEach(() => {
       makeUser({ id: 'u2', firstName: 'Bob', email: 'bob@t.local' }),
     ],
     meta: { page: 1, pageSize: 20, total: 2 },
+  });
+});
+
+describe('UsersPage department', () => {
+  it('department filter sends the value and resets the page', async () => {
+    list.mockResolvedValue({
+      data: [makeUser({ department: 'Design' })],
+      meta: { page: 1, pageSize: 20, total: 1 },
+    });
+    const w = mountPage();
+    await flushPromises();
+    expect(w.text()).toContain('Design'); // column
+    const select = w
+      .findAllComponents(Select)
+      .find((c) => c.props('options').some((o: { label: string }) => o.label === 'Engineering'))!;
+    select.vm.$emit('update:modelValue', 'Engineering');
+    await flushPromises();
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ department: 'Engineering', page: 1 }));
+    w.unmount();
   });
 });
 
