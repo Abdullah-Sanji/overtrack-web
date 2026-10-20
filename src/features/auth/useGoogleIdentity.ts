@@ -53,13 +53,15 @@ export function useGoogleIdentity(opts: {
   };
 
   onMounted(() => {
+    if (!opts.clientId) return; // Google not configured: never touch accounts.google.com
     const theme = useUiStore().theme === 'dark' ? 'filled_black' : 'outline';
     timer = setTimeout(fail, opts.timeoutMs ?? 5000);
     loadScript()
       .then(() => {
-        if (settled || !buttonEl.value) return;
+        if (settled) return;
         settled = true;
         clearTimeout(timer);
+        if (!buttonEl.value) return;
         const id = window.google!.accounts!.id!;
         id.initialize({ client_id: opts.clientId, callback: (r) => opts.onCredential(r.credential) });
         id.renderButton(buttonEl.value, {

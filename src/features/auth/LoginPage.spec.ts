@@ -45,6 +45,21 @@ describe('LoginPage', () => {
   });
 });
 
+describe('LoginPage without Google', () => {
+  it('never loads the Google script and shows no alert after the timeout', async () => {
+    vi.useFakeTimers();
+    mockRoute.query = {};
+    const w = mount(LoginPage, { global: { plugins: [createTestingPinia({ createSpy: vi.fn })] } });
+    await flushPromises();
+    expect(document.head.querySelector('script[src*="gsi"]')).toBeNull();
+    await vi.advanceTimersByTimeAsync(6000);
+    await flushPromises();
+    expect(w.find('[role="alert"]').exists()).toBe(false);
+    expect(w.find('form').exists()).toBe(true);
+    vi.useRealTimers();
+  });
+});
+
 describe('LoginPage blur validation', () => {
   it('shows the email error on blur without submitting', async () => {
     mockRoute.query = {};
