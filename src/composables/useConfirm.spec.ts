@@ -16,6 +16,15 @@ describe('useConfirm', () => {
     await expect(p2).resolves.toBe(false);
     expect(store.open).toBe(false);
   });
+  it('settle(false) on an open ask resolves it false (route change)', async () => {
+    const { confirm } = useConfirm();
+    const store = useConfirmStore();
+    const p = confirm({ title: 'A' });
+    expect(store.open).toBe(true);
+    store.settle(false);
+    await expect(p).resolves.toBe(false);
+    expect(store.open).toBe(false);
+  });
   it('a second ask cancels the first', async () => {
     const { confirm } = useConfirm();
     const first = confirm({ title: 'A' });

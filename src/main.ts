@@ -6,11 +6,16 @@ import './styles/base.css';
 import { queryClient } from './app/query';
 import { router } from './app/router';
 import { useAuthStore } from './stores/auth.store';
+import { useConfirmStore } from './composables/useConfirm';
 
 const app = createApp(App);
 app.use(createPinia());
 app.use(VueQueryPlugin, { queryClient });
 app.use(router);
+router.afterEach(() => {
+  const s = useConfirmStore();
+  if (s.open) s.settle(false);
+});
 useAuthStore().setSessionLostHandler(() => {
   if (router.currentRoute.value.meta.public) return;
   void router.replace({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } });
