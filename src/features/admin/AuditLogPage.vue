@@ -38,11 +38,12 @@ const typeOptions = [
   { value: 'sheet', label: 'Sheets' },
   { value: 'user', label: 'Users' },
   { value: 'team', label: 'Teams' },
+  { value: 'role', label: 'Roles' },
   { value: 'chain', label: 'Chains' },
   { value: 'overtime_type', label: 'Overtime types' },
 ];
 const tone = (a: string) =>
-  a.includes('reject') || a.includes('deactivat')
+  a.includes('reject') || a.includes('deactivat') || a.includes('deleted')
     ? 'danger'
     : a.includes('paid') || a.includes('approved')
       ? 'success'
