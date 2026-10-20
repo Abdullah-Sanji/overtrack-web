@@ -18,7 +18,7 @@ pnpm e2e                        # Playwright, desktop Chromium, against a seeded
 pnpm e2e:mobile                 # same flows with the iPhone profile (WebKit)
 ```
 
-The e2e flows mutate the seeded data and run in file order (`01-` to `03-`), so
+The e2e flows mutate the seeded data and run in file order (`01-` to `04-`), so
 reseed before every run, including between `pnpm e2e` and `pnpm e2e:mobile`:
 
 ```bash
@@ -27,6 +27,8 @@ cd ../over-track-api && docker compose down -v && docker compose up -d && pnpm d
 
 Then restart the API if it was running. Set `PLAYWRIGHT_BASE_URL` to target
 another host.
+
+`04-` creates a role, re-assigns a user, exercises the delete guards and deletes a throwaway user.
 
 ## Build / Docker
 
