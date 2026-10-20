@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { focusFirstInvalid } from '@/lib/forms';
+import { discardGuard } from '@/composables/useConfirm';
 import { computed, ref, watch } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -120,12 +121,9 @@ const submit = handleSubmit(async (v) => {
   }
 }, focusFirstInvalid);
 
-function beforeClose(e: Event) {
-  if (meta.value.dirty && !confirm('Discard unsaved changes?')) e.preventDefault();
-}
-function requestClose() {
-  if (meta.value.dirty && !confirm('Discard unsaved changes?')) return;
-  emit('update:open', false);
+const guard = discardGuard(() => meta.value.dirty);
+async function requestClose() {
+  if (await guard()) emit('update:open', false);
 }
 </script>
 <template>
@@ -133,8 +131,8 @@ function requestClose() {
     :open="open"
     :title="user ? 'Edit user' : 'Invite user'"
     :description="user ? undefined : 'They receive an email with a link to set their password.'"
+    :before-close="guard"
     @update:open="emit('update:open', $event)"
-    @before-close="beforeClose"
   >
     <form id="user-form" class="space-y-4" novalidate @submit.prevent="submit">
       <p

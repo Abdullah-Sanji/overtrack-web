@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { focusFirstInvalid } from '@/lib/forms';
+import { discardGuard } from '@/composables/useConfirm';
 import { computed, ref, watch, type Ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
@@ -148,13 +149,9 @@ const submit = handleSubmit(async (v) => {
     formError.value = messageFor(e);
   }
 }, focusFirstInvalid);
-function beforeClose(e: Event) {
-  if (meta.value.dirty && !confirm('Discard unsaved changes?')) e.preventDefault();
-}
-function cancel() {
-  const e = new Event('beforeClose', { cancelable: true });
-  beforeClose(e);
-  if (!e.defaultPrevented) emit('update:open', false);
+const guard = discardGuard(() => meta.value.dirty);
+async function cancel() {
+  if (await guard()) emit('update:open', false);
 }
 
 const uploading = ref(false);
@@ -193,8 +190,8 @@ async function removeAttachment() {
     :open="open"
     :title="entry ? 'Edit entry' : 'Add overtime entry'"
     :description="`Period ${period}`"
+    :before-close="guard"
     @update:open="emit('update:open', $event)"
-    @before-close="beforeClose"
   >
     <form id="entry-form" class="space-y-4" novalidate @submit.prevent="submit">
       <p

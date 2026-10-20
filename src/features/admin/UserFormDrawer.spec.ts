@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import { useConfirmStore } from '@/composables/useConfirm';
 import UserFormDrawer from './UserFormDrawer.vue';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import { ApiError } from '@/api/errors';
@@ -13,6 +15,7 @@ vi.mock('@/api/users.api', () => ({
 const rolesList = vi.fn();
 vi.mock('@/api/roles.api', () => ({ rolesApi: { list: (...a: unknown[]) => rolesList(...a) } }));
 const plugins = () => [
+  createTestingPinia({ stubActions: false, createSpy: vi.fn }),
   [VueQueryPlugin, { queryClient: new QueryClient() }] as [typeof VueQueryPlugin, unknown],
 ];
 const mountDrawer = () =>
@@ -58,35 +61,37 @@ describe('UserFormDrawer', () => {
   };
 
   it('Cancel with unsaved changes asks for confirmation and stays open when declined', async () => {
-    const confirmSpy = vi.fn(() => false);
-    vi.stubGlobal('confirm', confirmSpy);
     const w = mountDrawer();
+    const confirmStore = useConfirmStore();
     const el = document.body.querySelector('[name="firstName"]') as HTMLInputElement;
     el.value = 'Nora';
     el.dispatchEvent(new Event('input'));
     await flushPromises();
     clickCancel();
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    await flushPromises();
+    expect(confirmStore.open).toBe(true);
+    expect(confirmStore.options.title).toBe('Discard unsaved changes?');
+    confirmStore.settle(false);
+    await flushPromises();
     expect(w.emitted('update:open')).toBeUndefined();
+    clickCancel();
+    await flushPromises();
+    confirmStore.settle(true);
+    await flushPromises();
+    expect(w.emitted('update:open')).toEqual([[false]]);
     w.unmount();
-    vi.unstubAllGlobals();
   });
 
   it('Cancel with a clean form closes without confirmation', async () => {
-    const confirmSpy = vi.fn(() => false);
-    vi.stubGlobal('confirm', confirmSpy);
     const w = mountDrawer();
     await flushPromises();
     clickCancel();
     await vi.waitFor(() => expect(w.emitted('update:open')).toEqual([[false]]));
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(useConfirmStore().open).toBe(false);
     w.unmount();
-    vi.unstubAllGlobals();
   });
 
   it('reopening as a new user keeps the default role and a clean form', async () => {
-    const confirmSpy = vi.fn(() => false);
-    vi.stubGlobal('confirm', confirmSpy);
     const w = mountDrawer();
     await flushPromises();
     await w.setProps({ open: false });
@@ -94,7 +99,7 @@ describe('UserFormDrawer', () => {
     await flushPromises();
     clickCancel();
     await vi.waitFor(() => expect(w.emitted('update:open')).toEqual([[false]]));
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(useConfirmStore().open).toBe(false);
     create.mockResolvedValueOnce({ id: 'n' });
     for (const [name, v] of [
       ['firstName', 'Nora'],

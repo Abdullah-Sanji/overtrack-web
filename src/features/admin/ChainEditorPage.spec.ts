@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
+import { createTestingPinia } from '@pinia/testing';
 import ChainEditorPage from './ChainEditorPage.vue';
 import { chainsApi } from '@/api/chains.api';
 
@@ -43,7 +44,12 @@ describe('ChainEditorPage', () => {
   it('starts empty with a warning, adds steps, reorders them and saves in order', async () => {
     const w = mount(ChainEditorPage, {
       props: { id: 't1' },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
     });
     await flushPromises();
     expect(w.text()).toContain('no approval chain');
@@ -76,7 +82,12 @@ describe('ChainEditorPage', () => {
     ]);
     const w = mount(ChainEditorPage, {
       props: { id: 't1' },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
     });
     await flushPromises();
     expect(w.text()).toContain('approvers on this chain are inactive');
@@ -88,7 +99,12 @@ describe('ChainEditorPage', () => {
     replace.mockClear();
     const w = mount(ChainEditorPage, {
       props: { id: 't1' },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
     });
     await flushPromises();
     await w.find('[data-action="add-step"]').trigger('click');

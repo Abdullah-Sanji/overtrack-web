@@ -9,15 +9,20 @@ import {
   DialogClose,
 } from 'reka-ui';
 import { X } from 'lucide-vue-next';
-withDefaults(defineProps<{ open: boolean; title: string; description?: string }>(), {
-  description: undefined,
-});
-const emit = defineEmits<{ 'update:open': [v: boolean]; beforeClose: [e: Event] }>();
-function requestClose(next: boolean) {
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    title: string;
+    description?: string;
+    beforeClose?: () => boolean | Promise<boolean>;
+  }>(),
+  { description: undefined, beforeClose: undefined },
+);
+const emit = defineEmits<{ 'update:open': [v: boolean] }>();
+async function requestClose(next: boolean) {
   if (next) return emit('update:open', true);
-  const e = new Event('beforeClose', { cancelable: true });
-  emit('beforeClose', e);
-  if (!e.defaultPrevented) emit('update:open', false);
+  if (props.beforeClose && !(await props.beforeClose())) return;
+  emit('update:open', false);
 }
 </script>
 <template>

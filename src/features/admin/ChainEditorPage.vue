@@ -9,6 +9,7 @@ import { usersApi } from '@/api/users.api';
 import type { ChainStepView } from '@/api/types';
 import { fullName } from '@/lib/format';
 import { messageFor } from '@/api/errors';
+import { discardGuard } from '@/composables/useConfirm';
 import { useToast } from '@/components/ui/useToast';
 import { PageHeader, Button, Card, Input, Combobox, FormField, Skeleton } from '@/components/ui';
 
@@ -124,7 +125,8 @@ function discard() {
   steps.value = fromServer(chain.data.value ?? []);
   errors.value = {};
 }
-onBeforeRouteLeave(() => (dirty.value ? confirm('Discard unsaved chain changes?') : true));
+const guard = discardGuard(() => dirty.value);
+onBeforeRouteLeave(() => guard());
 defineExpose({ steps });
 </script>
 <template>

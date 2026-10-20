@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
+import { createTestingPinia } from '@pinia/testing';
+import { useConfirmStore } from '@/composables/useConfirm';
 import EntryForm from './EntryForm.vue';
 
 vi.mock('@/api/overtime-types.api', () => ({
@@ -28,7 +30,12 @@ describe('EntryForm', () => {
   it('shows field errors on empty submit and does not call the API', async () => {
     const w = mount(EntryForm, {
       props: { open: true, sheetId: 's1', period: '2026-09' },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
       attachTo: document.body,
     });
     await flushPromises();
@@ -43,8 +50,6 @@ describe('EntryForm', () => {
   });
 
   it('keeps saved hours in edit mode and is not dirty', async () => {
-    const confirmSpy = vi.fn(() => true);
-    vi.stubGlobal('confirm', confirmSpy);
     const entry = {
       id: 'e1',
       date: '2026-09-10',
@@ -62,7 +67,12 @@ describe('EntryForm', () => {
     };
     const w = mount(EntryForm, {
       props: { open: true, sheetId: 's1', period: '2026-09', entry },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
       attachTo: document.body,
     });
     await flushPromises();
@@ -72,9 +82,8 @@ describe('EntryForm', () => {
     );
     cancel!.click();
     await flushPromises();
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(useConfirmStore().open).toBe(false);
     w.unmount();
-    vi.unstubAllGlobals();
   });
 
   it('re-derives hours in edit mode when saved hours equal the time span', async () => {
@@ -95,7 +104,12 @@ describe('EntryForm', () => {
     };
     const w = mount(EntryForm, {
       props: { open: true, sheetId: 's1', period: '2026-09', entry },
-      global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          [VueQueryPlugin, { queryClient: new QueryClient() }],
+        ],
+      },
       attachTo: document.body,
     });
     await flushPromises();

@@ -10,12 +10,13 @@ const props = withDefaults(
     title: string;
     description?: string;
     confirmLabel?: string;
+    cancelLabel?: string;
     destructive?: boolean;
     loading?: boolean;
     requireReason?: boolean;
     reasonLabel?: string;
   }>(),
-  { description: undefined, confirmLabel: 'Confirm', reasonLabel: 'Reason' },
+  { description: undefined, confirmLabel: 'Confirm', cancelLabel: 'Cancel', reasonLabel: 'Reason' },
 );
 const emit = defineEmits<{ 'update:open': [v: boolean]; confirm: [reason: string] }>();
 const reason = ref('');
@@ -51,7 +52,7 @@ function confirm() {
       /></template>
     </FormField>
     <template #footer>
-      <Button variant="outline" @click="emit('update:open', false)">Cancel</Button>
+      <Button variant="outline" @click="emit('update:open', false)">{{ cancelLabel }}</Button>
       <Button
         data-confirm
         :variant="destructive ? 'destructive' : 'primary'"
