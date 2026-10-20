@@ -25,9 +25,9 @@ test('admin manages roles and deletes are guarded', async ({ page }) => {
 
   await goToNav(page, 'Roles');
   await page.getByRole('button', { name: 'Actions for QA Lead' }).click();
-  await page.getByRole('menuitem', { name: 'Delete' }).click();
-  await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await expect(page.getByText(/Users still have this role/)).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: /Delete/ })).toHaveAttribute('data-disabled', '');
+  await expect(page.getByText('In use')).toBeVisible();
+  await page.keyboard.press('Escape');
 
   await goToNav(page, 'Teams');
   await page.getByRole('button', { name: 'Delete team Platform' }).click();

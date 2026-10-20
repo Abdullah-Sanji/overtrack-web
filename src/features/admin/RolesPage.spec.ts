@@ -88,6 +88,19 @@ describe('RolesPage', () => {
     w.unmount();
   });
 
+  it('disables Delete with an "In use" hint when a custom role has users', async () => {
+    list.mockResolvedValue([mk({ id: 'r-qa', name: 'QA Lead', level: 'manager', userCount: 2 })]);
+    const w = mountPage();
+    await flushPromises();
+    await openMenu('QA Lead');
+    const del = [...document.body.querySelectorAll('[role="menuitem"]')].find((e) =>
+      e.textContent?.includes('Delete'),
+    ) as HTMLElement;
+    expect(del.hasAttribute('data-disabled')).toBe(true);
+    expect(del.textContent).toContain('In use');
+    w.unmount();
+  });
+
   it('confirms before deleting, then removes by id', async () => {
     remove.mockResolvedValueOnce(undefined);
     const w = mountPage();

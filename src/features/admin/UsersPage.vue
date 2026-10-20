@@ -63,7 +63,8 @@ const drawerOpen = ref(false);
 const editing = ref<PublicUser | null>(null);
 const toggling = ref<PublicUser | null>(null);
 const toggleLoading = ref(false);
-const invalidate = () => qc.invalidateQueries({ queryKey: ['users'] });
+const invalidate = () =>
+  Promise.all([qc.invalidateQueries({ queryKey: ['users'] }), qc.invalidateQueries({ queryKey: ['roles'] })]);
 
 async function resend(u: PublicUser) {
   try {

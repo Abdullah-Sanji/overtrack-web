@@ -81,6 +81,7 @@ const columns: ColumnDef<RoleView, unknown>[] = [
                     label: 'Delete',
                     icon: Trash2,
                     destructive: true,
+                    ...(row.original.userCount > 0 ? { disabled: true, hint: 'In use' } : {}),
                     onSelect: () => remove(row.original),
                   },
                 ]),

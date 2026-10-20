@@ -8,7 +8,14 @@ import {
   DropdownMenuItem,
 } from 'reka-ui';
 defineProps<{
-  items: Array<{ label: string; icon?: Component; destructive?: boolean; onSelect: () => void }>;
+  items: Array<{
+    label: string;
+    icon?: Component;
+    destructive?: boolean;
+    disabled?: boolean;
+    hint?: string;
+    onSelect: () => void;
+  }>;
 }>();
 </script>
 <template>
@@ -23,11 +30,14 @@ defineProps<{
         <DropdownMenuItem
           v-for="it in items"
           :key="it.label"
-          class="flex min-h-11 cursor-pointer items-center gap-2 rounded-control px-3 py-2 text-base outline-none data-[highlighted]:bg-muted"
+          class="flex min-h-11 cursor-pointer items-center gap-2 rounded-control px-3 py-2 text-base outline-none data-[highlighted]:bg-muted data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+          :disabled="it.disabled"
+          :title="it.hint"
           :class="it.destructive ? 'text-destructive' : ''"
           @select="it.onSelect"
         >
           <component :is="it.icon" v-if="it.icon" class="h-4 w-4" aria-hidden="true" />{{ it.label }}
+          <span v-if="it.hint" class="ml-auto text-xs text-muted-foreground">{{ it.hint }}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenuPortal>
