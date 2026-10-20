@@ -7,6 +7,11 @@ export const authApi = {
       body: { email, password },
       skipAuth: true,
     }).then((r) => r.data),
+  loginWithGoogle: (credential: string) =>
+    request<{ data: { accessToken: string; user: PublicUser } }>('POST', '/auth/google', {
+      body: { credential },
+      skipAuth: true,
+    }).then((r) => r.data),
   refresh: () =>
     request<{ data: { accessToken: string } }>('POST', '/auth/refresh', { skipAuth: true }).then(
       (r) => r.data.accessToken,

@@ -57,13 +57,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(email: string, password: string) {
-    const r = await authApi.login(email, password);
+  function applySession(r: { accessToken: string; user: PublicUser }) {
     queryClient.clear();
     useNotificationsStore().reset();
     accessToken.value = r.accessToken;
     user.value = r.user;
     status.value = 'ready';
+  }
+
+  async function login(email: string, password: string) {
+    applySession(await authApi.login(email, password));
+  }
+
+  async function loginWithGoogle(credential: string) {
+    applySession(await authApi.loginWithGoogle(credential));
   }
 
   async function logout() {
@@ -85,6 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
     status,
     bootstrap,
     login,
+    loginWithGoogle,
     logout,
     clear,
     setSessionLostHandler,

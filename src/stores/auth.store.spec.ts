@@ -8,6 +8,7 @@ import { useNotificationsStore } from './notifications.store';
 vi.mock('@/api/auth.api', () => ({
   authApi: {
     login: vi.fn(async () => ({ accessToken: 't', user: makeUser({ id: 'u' }) })),
+    loginWithGoogle: vi.fn(async () => ({ accessToken: 'g', user: makeUser({ id: 'g1' }) })),
     logout: vi.fn(async () => {}),
     refresh: vi.fn(async () => 't'),
     me: vi.fn(async () => makeUser({ id: 'u' })),
@@ -32,6 +33,15 @@ describe('auth store', () => {
     auth.clear();
     expect(handler).toHaveBeenCalledTimes(1);
     auth.setSessionLostHandler(null);
+  });
+
+  it('loginWithGoogle stores the session like login', async () => {
+    const auth = useAuthStore();
+    await auth.loginWithGoogle('credential-token');
+    expect(auth.accessToken).toBe('g');
+    expect(auth.user?.id).toBe('g1');
+    expect(auth.status).toBe('ready');
+    expect(auth.isAuthenticated).toBe(true);
   });
 
   it('logout clears the query cache and notifications', async () => {
