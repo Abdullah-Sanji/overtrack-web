@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { focusFirstInvalid } from '@/lib/forms';
 import { discardGuard } from '@/composables/useConfirm';
-import { computed, ref, watch, type Ref } from 'vue';
+import { computed, nextTick, ref, watch, type Ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { useQuery } from '@tanstack/vue-query';
@@ -58,7 +58,7 @@ const emptyValues = () => ({
   requestedById: null,
 });
 
-const { handleSubmit, defineField, errors, setErrors, resetForm, isSubmitting, meta, values } = useForm({
+const { handleSubmit, defineField, errors, setErrors, resetForm, isSubmitting, meta } = useForm({
   validationSchema: toTypedSchema(entrySchema(props.period, todayIso())),
   initialValues: emptyValues(),
 });
@@ -108,10 +108,18 @@ watch([startTimeModel, endTimeModel], ([s, e]) => {
     }
   }
 });
+function clear() {
+  formError.value = '';
+  lastDerived.value = null;
+  resetForm({ values: emptyValues() });
+}
 watch(
   () => props.open,
   (o) => {
-    if (!o) return;
+    if (!o) {
+      clear();
+      return;
+    }
     formError.value = '';
     const e = props.entry;
     // Hours keep auto-deriving only while they still equal the last derived value.
@@ -142,8 +150,14 @@ const submit = handleSubmit(async (v) => {
       ? await sheetsApi.updateEntry(props.sheetId, props.entry.id, v)
       : await sheetsApi.addEntry(props.sheetId, v);
     toast({ title: props.entry ? 'Entry updated' : 'Entry added', tone: 'success' });
-    resetForm({ values: { ...values } });
     emit('saved', saved);
+    if (props.entry) {
+      emit('update:open', false);
+    } else {
+      clear();
+      await nextTick();
+      document.getElementById('date')?.focus();
+    }
   } catch (e) {
     setErrors(fieldErrors(e));
     formError.value = messageFor(e);

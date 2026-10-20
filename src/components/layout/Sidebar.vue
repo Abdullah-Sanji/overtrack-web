@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 import {
   LayoutDashboard,
   FileText,
@@ -22,6 +22,13 @@ const props = withDefaults(defineProps<{ inboxCount?: number; collapsed?: boolea
 });
 const auth = useAuthStore();
 const ui = useUiStore();
+const route = useRoute();
+function activeFor(name: string, isActive: boolean, isExactActive: boolean) {
+  if (name === 'dashboard') return isExactActive;
+  // `sheet` is a sibling of `my-sheets` in the route tree, so RouterLink alone does not mark it.
+  if (name === 'my-sheets') return isActive || route.name === 'sheet';
+  return isActive;
+}
 const items = computed(() =>
   [
     { name: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
@@ -51,12 +58,16 @@ const items = computed(() =>
       >
         {{ it.group }}
       </p>
-      <RouterLink v-slot="{ href, navigate, isActive }" :to="{ name: it.name }" custom>
+      <RouterLink v-slot="{ href, navigate, isActive, isExactActive }" :to="{ name: it.name }" custom>
         <a
           :href="href"
           class="flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
-          :class="isActive ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-muted'"
-          :aria-current="isActive ? 'page' : undefined"
+          :class="
+            activeFor(it.name, isActive, isExactActive)
+              ? 'bg-primary/10 font-medium text-primary'
+              : 'text-foreground hover:bg-muted'
+          "
+          :aria-current="activeFor(it.name, isActive, isExactActive) ? 'page' : undefined"
           :title="props.collapsed ? it.label : undefined"
           @click="
             navigate($event);

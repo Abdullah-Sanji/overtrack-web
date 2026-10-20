@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import { createTestingPinia } from '@pinia/testing';
@@ -23,7 +23,17 @@ vi.mock('@/api/users.api', () => ({
   usersApi: { directory: vi.fn(async () => []) },
 }));
 vi.mock('@/api/sheets.api', () => ({
-  sheetsApi: { addEntry: vi.fn(async (_s: string, b: unknown) => ({ id: 'e1', ...(b as object) })) },
+  sheetsApi: {
+    addEntry: vi.fn(async (_s: string, b: unknown) => ({
+      id: 'e1',
+      multiplier: 1.5,
+      weightedHours: 1.5,
+      overtimeType: { id: '11111111-1111-4111-8111-111111111111', name: 'Weekday', color: '#000' },
+      requestedBy: null,
+      attachment: null,
+      ...(b as object),
+    })),
+  },
 }));
 
 describe('EntryForm', () => {
@@ -119,5 +129,107 @@ describe('EntryForm', () => {
     await flushPromises();
     expect((document.body.querySelector('#hours') as HTMLInputElement).value).toBe('3.5');
     w.unmount();
+  });
+
+  describe('reset behaviour', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // jsdom lacks the pointer-capture and scroll APIs the Select popper uses.
+      Element.prototype.hasPointerCapture ??= () => false;
+      Element.prototype.setPointerCapture ??= () => undefined;
+      Element.prototype.releasePointerCapture ??= () => undefined;
+      Element.prototype.scrollIntoView ??= () => undefined;
+    });
+    function mountOpen() {
+      return mount(EntryForm, {
+        props: { open: true, sheetId: 's1', period: '2026-09' },
+        global: {
+          plugins: [
+            createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+            [VueQueryPlugin, { queryClient: new QueryClient() }],
+          ],
+        },
+        attachTo: document.body,
+      });
+    }
+    function setField(sel: string, value: string) {
+      const el = document.body.querySelector(sel) as HTMLInputElement | HTMLTextAreaElement;
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    async function fillAndSubmit() {
+      setField('#date', '2026-09-10');
+      setField('#startTime', '18:00');
+      setField('#endTime', '19:30');
+      const trigger = document.body.querySelector('#overtimeTypeId') as HTMLElement;
+      trigger.dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, button: 0, ctrlKey: false, pointerType: 'mouse' }),
+      );
+      await flushPromises();
+      const option = document.body.querySelector('[role="option"]') as HTMLElement;
+      option.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerType: 'mouse' }));
+      option.click();
+      await flushPromises();
+      setField('#workItem', 'E2E-1');
+      setField('#description', 'Fixed the production incident');
+      await flushPromises();
+      (document.body.querySelector('form') as HTMLFormElement).dispatchEvent(
+        new Event('submit', { cancelable: true }),
+      );
+      const { sheetsApi } = await import('@/api/sheets.api');
+      await vi.waitFor(() => expect(sheetsApi.addEntry).toHaveBeenCalled());
+      await flushPromises();
+    }
+    const val = (sel: string) => (document.body.querySelector(sel) as HTMLInputElement).value;
+
+    it('clears after a successful add and keeps the drawer open', async () => {
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      expect(sheetsApi.addEntry).toHaveBeenCalled();
+      expect(w.emitted('update:open')).toBeUndefined();
+      expect(val('#workItem')).toBe('');
+      expect(val('#hours')).toBe('');
+      w.unmount();
+    });
+
+    it('derives hours again after a reset', async () => {
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      setField('#startTime', '18:00');
+      setField('#endTime', '21:00');
+      await flushPromises();
+      expect(val('#hours')).toBe('3');
+      w.unmount();
+    });
+
+    it('closing while dirty and reopening shows a blank form', async () => {
+      const w = mountOpen();
+      await flushPromises();
+      setField('#workItem', 'DIRTY-1');
+      await flushPromises();
+      await w.setProps({ open: false });
+      await w.setProps({ open: true });
+      await flushPromises();
+      expect(val('#workItem')).toBe('');
+      w.unmount();
+    });
+
+    it("reopening in edit mode after an add shows that entry's values", async () => {
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      const savedEntry = await (sheetsApi.addEntry as ReturnType<typeof vi.fn>).mock.results[0].value;
+      await w.setProps({ open: false });
+      await w.setProps({ open: true, entry: savedEntry });
+      await flushPromises();
+      expect(val('#workItem')).toBe('E2E-1');
+      expect(document.body.textContent).toContain('Edit entry');
+      w.unmount();
+    });
   });
 });

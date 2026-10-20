@@ -45,7 +45,7 @@ function edit(e: EntryView) {
   formOpen.value = true;
 }
 async function saved(e: EntryView) {
-  editing.value = e;
+  if (editing.value) editing.value = e;
   await invalidate();
 }
 async function confirmRemove() {
