@@ -56,18 +56,18 @@ const items = computed(() =>
     <template v-for="(it, idx) in items" :key="it.name">
       <p
         v-if="it.group && items[idx - 1]?.group !== it.group && !props.collapsed"
-        class="mt-4 px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+        class="mt-4 px-3 text-xs font-medium uppercase tracking-wide text-sidebar-muted"
       >
         {{ it.group }}
       </p>
       <RouterLink v-slot="{ href, navigate, isActive, isExactActive }" :to="{ name: it.name }" custom>
         <a
           :href="href"
-          class="flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
+          class="relative flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
           :class="
             activeFor(it.name, isActive, isExactActive)
-              ? 'bg-primary/10 font-medium text-primary'
-              : 'text-foreground hover:bg-muted'
+              ? 'bg-sidebar-active font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary-soft'
+              : 'text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground'
           "
           :aria-current="activeFor(it.name, isActive, isExactActive) ? 'page' : undefined"
           :title="props.collapsed ? it.label : undefined"
@@ -80,7 +80,7 @@ const items = computed(() =>
           <span v-if="!props.collapsed" class="flex-1 truncate">{{ it.label }}</span>
           <span
             v-if="it.badge && !props.collapsed"
-            class="num rounded-full bg-secondary px-2 text-xs text-on-secondary"
+            class="num rounded-full bg-primary-soft px-2 text-xs text-primary"
             >{{ it.badge }}</span
           >
         </a>
@@ -88,7 +88,7 @@ const items = computed(() =>
     </template>
     <button
       type="button"
-      class="mt-auto hidden h-11 cursor-pointer items-center gap-3 rounded-control px-3 text-muted-foreground hover:bg-muted lg:flex"
+      class="mt-auto hidden h-11 cursor-pointer items-center gap-3 rounded-control px-3 text-sidebar-muted hover:bg-sidebar-hover lg:flex"
       :aria-label="props.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
       @click="ui.toggleSidebar()"
     >

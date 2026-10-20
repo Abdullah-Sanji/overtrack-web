@@ -42,9 +42,11 @@ function addOvertime() {
 }
 </script>
 <template>
-  <PageHeader :title="`Hello, ${auth.user?.firstName ?? ''}`" :description="formatPeriod(period)">
-    <template #actions><Button @click="addOvertime">Add overtime</Button></template>
-  </PageHeader>
+  <div class="mb-6 rounded-card bg-gradient-to-r from-primary-soft to-surface p-5 shadow-card">
+    <PageHeader compact :title="`Hello, ${auth.user?.firstName ?? ''}`" :description="formatPeriod(period)">
+      <template #actions><Button @click="addOvertime">Add overtime</Button></template>
+    </PageHeader>
+  </div>
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <template v-if="month.isPending.value">
       <Skeleton v-for="i in 2" :key="i" :lines="2" />

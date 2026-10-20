@@ -13,10 +13,13 @@ describe('StatusBadge', () => {
     expect(w.text()).toBe(label);
     expect(w.find('svg').exists()).toBe(true);
   });
-  it('paid uses the accent tone', () =>
-    expect(
-      mount(StatusBadge, { props: { status: 'paid' } })
-        .classes()
-        .join(' '),
-    ).toContain('accent'));
+  it.each([
+    ['draft', 'bg-muted'],
+    ['submitted', 'bg-primary-soft'],
+    ['approved', 'bg-accent-soft'],
+    ['paid', 'bg-paid-soft'],
+    ['rejected', 'bg-destructive-soft'],
+  ] as const)('%s uses the %s tone', (status, cls) =>
+    expect(mount(StatusBadge, { props: { status } }).classes()).toContain(cls),
+  );
 });

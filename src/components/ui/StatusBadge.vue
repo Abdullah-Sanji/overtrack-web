@@ -7,8 +7,8 @@ const props = defineProps<{ status: SheetStatus }>();
 const map = {
   draft: { tone: 'neutral', label: 'Draft', icon: Pencil },
   submitted: { tone: 'info', label: 'Submitted', icon: Clock },
-  approved: { tone: 'indigo', label: 'Approved', icon: Check },
-  paid: { tone: 'success', label: 'Paid', icon: CheckCircle2 },
+  approved: { tone: 'success', label: 'Approved', icon: Check },
+  paid: { tone: 'paid', label: 'Paid', icon: CheckCircle2 },
   rejected: { tone: 'danger', label: 'Rejected', icon: XCircle },
 } as const;
 const m = computed(() => map[props.status]);

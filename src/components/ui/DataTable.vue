@@ -70,7 +70,7 @@ function toggle(id: string) {
 <template>
   <div class="overflow-x-auto rounded-card border bg-surface shadow-card">
     <table class="w-full min-w-[640px] border-collapse text-base">
-      <thead class="bg-muted/60 text-sm text-muted-foreground">
+      <thead class="bg-muted text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <tr>
           <th v-if="expandable" class="w-10" />
           <th
@@ -121,7 +121,7 @@ function toggle(id: string) {
         <template v-else>
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <tr
-              class="border-t transition-colors hover:bg-muted/40"
+              class="border-t transition-colors hover:bg-primary-soft/40"
               :class="
                 clickable
                   ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'

@@ -2,7 +2,7 @@
 withDefaults(defineProps<{ padded?: boolean }>(), { padded: true });
 </script>
 <template>
-  <section class="rounded-card border bg-surface shadow-card">
+  <section class="rounded-card bg-surface shadow-card border border-transparent dark:border-border">
     <header v-if="$slots.header" class="border-b px-5 py-4">
       <slot name="header" />
     </header>

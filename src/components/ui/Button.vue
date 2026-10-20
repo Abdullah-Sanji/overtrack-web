@@ -14,7 +14,7 @@ const props = withDefaults(
 );
 const variants = {
   primary: 'bg-primary text-on-primary hover:brightness-110',
-  secondary: 'bg-secondary text-on-secondary hover:brightness-110',
+  secondary: 'bg-primary-soft text-primary hover:bg-primary/15',
   outline: 'border bg-surface text-foreground hover:bg-muted',
   ghost: 'text-foreground hover:bg-muted',
   destructive: 'bg-destructive text-on-destructive hover:brightness-110',

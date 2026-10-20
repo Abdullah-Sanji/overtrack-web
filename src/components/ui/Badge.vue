@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 const props = withDefaults(
-  defineProps<{ tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'indigo' }>(),
+  defineProps<{ tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'indigo' | 'paid' }>(),
   { tone: 'neutral' },
 );
 const tones = {
   neutral: 'bg-muted text-muted-foreground',
-  info: 'bg-secondary/15 text-secondary',
-  success: 'bg-accent/15 text-accent',
-  warning: 'bg-warning/15 text-warning',
-  danger: 'bg-destructive/15 text-destructive',
-  indigo: 'bg-indigo/15 text-indigo',
+  info: 'bg-primary-soft text-primary',
+  success: 'bg-accent-soft text-accent',
+  warning: 'bg-warning-soft text-warning',
+  danger: 'bg-destructive-soft text-destructive',
+  indigo: 'bg-primary-soft text-indigo',
+  paid: 'bg-paid-soft text-paid',
 };
 const cls = computed(() => tones[props.tone]);
 </script>
