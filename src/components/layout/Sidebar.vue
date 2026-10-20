@@ -24,11 +24,15 @@ const props = withDefaults(defineProps<{ inboxCount?: number; collapsed?: boolea
 const auth = useAuthStore();
 const ui = useUiStore();
 const route = useRoute();
+// These routes are siblings of their nav item in the route tree, so RouterLink alone does not mark them.
+const CHILD_ROUTES: Record<string, string[]> = {
+  'my-sheets': ['sheet'],
+  inbox: ['review'],
+  'admin-teams': ['admin-chain'],
+};
 function activeFor(name: string, isActive: boolean, isExactActive: boolean) {
   if (name === 'dashboard') return isExactActive;
-  // `sheet` is a sibling of `my-sheets` in the route tree, so RouterLink alone does not mark it.
-  if (name === 'my-sheets') return isActive || route.name === 'sheet';
-  return isActive;
+  return isActive || CHILD_ROUTES[name]?.includes(String(route.name)) === true;
 }
 const items = computed(() =>
   [
@@ -66,7 +70,7 @@ const items = computed(() =>
           class="relative flex h-11 items-center gap-3 rounded-control px-3 text-base transition-colors"
           :class="
             activeFor(it.name, isActive, isExactActive)
-              ? 'bg-sidebar-active font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary-soft'
+              ? 'bg-sidebar-active font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-sidebar-muted'
               : 'text-sidebar-foreground/80 hover:bg-sidebar-hover hover:text-sidebar-foreground'
           "
           :aria-current="activeFor(it.name, isActive, isExactActive) ? 'page' : undefined"
