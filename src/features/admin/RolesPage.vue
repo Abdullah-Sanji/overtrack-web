@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-vue-next';
 import { rolesApi } from '@/api/roles.api';
+import { authApi } from '@/api/auth.api';
+import { useAuthStore } from '@/stores/auth.store';
 import type { RoleView } from '@/api/types';
 import { messageFor } from '@/api/errors';
 import { useConfirm } from '@/composables/useConfirm';
@@ -13,12 +15,18 @@ import { levelLabel } from './roles';
 import RoleFormDrawer from './RoleFormDrawer.vue';
 
 const qc = useQueryClient();
+const auth = useAuthStore();
 const { toast } = useToast();
 const { confirm } = useConfirm();
 const q = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
 const open = ref(false);
 const editing = ref<RoleView | null>(null);
-const invalidate = () => qc.invalidateQueries({ queryKey: ['roles'] });
+const invalidate = () =>
+  Promise.all([qc.invalidateQueries({ queryKey: ['roles'] }), qc.invalidateQueries({ queryKey: ['users'] })]);
+async function onSaved(saved: RoleView) {
+  await invalidate();
+  if (saved.id === auth.user?.role.id) auth.setUser(await authApi.me());
+}
 function create() {
   editing.value = null;
   open.value = true;
@@ -112,5 +120,5 @@ const columns: ColumnDef<RoleView, unknown>[] = [
     empty-title="No roles"
     @retry="q.refetch()"
   />
-  <RoleFormDrawer v-model:open="open" :role="editing" @saved="invalidate()" />
+  <RoleFormDrawer v-model:open="open" :role="editing" @saved="onSaved" />
 </template>
