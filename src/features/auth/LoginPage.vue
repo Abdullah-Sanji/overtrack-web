@@ -79,7 +79,7 @@ const submit = handleSubmit(async (v) => {
       <Button type="submit" block :loading="isSubmitting">Sign in</Button>
       <p class="text-center text-sm">
         <RouterLink
-          class="text-secondary underline-offset-2 hover:underline"
+          class="text-primary underline-offset-2 hover:underline"
           :to="{ name: 'forgot-password' }"
           >Forgot your password?</RouterLink
         >

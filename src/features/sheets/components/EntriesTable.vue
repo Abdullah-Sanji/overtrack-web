@@ -47,7 +47,7 @@ const columns: ColumnDef<EntryView, unknown>[] = [
               href: row.original.workItemUrl,
               target: '_blank',
               rel: 'noopener',
-              class: 'inline-flex items-center gap-1 text-secondary hover:underline',
+              class: 'inline-flex items-center gap-1 text-primary hover:underline',
               onClick: (e: Event) => e.stopPropagation(),
             },
             [row.original.workItem, h(ExternalLink, { class: 'h-3.5 w-3.5' })],

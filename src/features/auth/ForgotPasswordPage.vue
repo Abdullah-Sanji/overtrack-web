@@ -56,7 +56,7 @@ const submit = handleSubmit(async (v) => {
       <Button type="submit" block :loading="isSubmitting">Send reset link</Button>
     </form>
     <p class="mt-4 text-center text-sm">
-      <RouterLink class="text-secondary hover:underline" :to="{ name: 'login' }">Back to sign in</RouterLink>
+      <RouterLink class="text-primary hover:underline" :to="{ name: 'login' }">Back to sign in</RouterLink>
     </p>
   </AuthCard>
 </template>
