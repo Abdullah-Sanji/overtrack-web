@@ -66,9 +66,14 @@ const roles = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
 const roleOptions = computed(() =>
   (roles.data.value ?? []).map((r) => ({ value: r.id, label: r.name, description: levelLabel(r.level) })),
 );
+function defaultRoleId(list = roles.data.value) {
+  return list?.find((r) => r.isSystem && r.level === 'employee')?.id ?? list?.[0]?.id ?? '';
+}
+// The default role is part of the baseline, so an untouched new-user form is not dirty.
 function applyDefaultRole(list = roles.data.value) {
-  if (!props.user && !roleId.value && list)
-    roleId.value = list.find((r) => r.isSystem && r.level === 'employee')?.id ?? list[0]?.id ?? '';
+  if (props.user || roleId.value || !list) return;
+  if (meta.value.dirty) roleId.value = defaultRoleId(list);
+  else resetForm({ values: { ...initialValues(null), roleId: defaultRoleId(list) } });
 }
 watch(roles.data, (list) => applyDefaultRole(list), { immediate: true });
 const teamOptions = computed(() => [
@@ -81,8 +86,9 @@ watch(
   (o) => {
     if (!o) return;
     formError.value = '';
-    resetForm({ values: initialValues(props.user) });
-    applyDefaultRole();
+    resetForm({
+      values: props.user ? initialValues(props.user) : { ...initialValues(null), roleId: defaultRoleId() },
+    });
   },
 );
 

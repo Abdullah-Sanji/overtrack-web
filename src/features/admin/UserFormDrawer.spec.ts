@@ -76,9 +76,38 @@ describe('UserFormDrawer', () => {
     const confirmSpy = vi.fn(() => false);
     vi.stubGlobal('confirm', confirmSpy);
     const w = mountDrawer();
+    await flushPromises();
     clickCancel();
     await vi.waitFor(() => expect(w.emitted('update:open')).toEqual([[false]]));
     expect(confirmSpy).not.toHaveBeenCalled();
+    w.unmount();
+    vi.unstubAllGlobals();
+  });
+
+  it('reopening as a new user keeps the default role and a clean form', async () => {
+    const confirmSpy = vi.fn(() => false);
+    vi.stubGlobal('confirm', confirmSpy);
+    const w = mountDrawer();
+    await flushPromises();
+    await w.setProps({ open: false });
+    await w.setProps({ open: true });
+    await flushPromises();
+    clickCancel();
+    await vi.waitFor(() => expect(w.emitted('update:open')).toEqual([[false]]));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    create.mockResolvedValueOnce({ id: 'n' });
+    for (const [name, v] of [
+      ['firstName', 'Nora'],
+      ['lastName', 'K'],
+      ['email', 'nora@t.local'],
+    ]) {
+      const el = document.body.querySelector(`[name="${name}"]`) as HTMLInputElement;
+      el.value = v;
+      el.dispatchEvent(new Event('input'));
+    }
+    document.body.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await vi.waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][0]).toMatchObject({ roleId: 'r-emp' });
     w.unmount();
     vi.unstubAllGlobals();
   });
