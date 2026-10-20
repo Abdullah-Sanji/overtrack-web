@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import SheetActions from './SheetActions.vue';
 import { ApiError } from '@/api/errors';
+import type { RoleLevel } from '@/api/types';
 const submit = vi.fn();
 vi.mock('@/api/workflow.api', () => ({
   workflowApi: { submit: (...a: unknown[]) => submit(...a), withdraw: vi.fn(), reopen: vi.fn() },
@@ -16,12 +17,12 @@ const base = {
   entries: [{ id: 'e' }],
   employee: { id: 'me' },
 } as Record<string, unknown>;
-const mountIt = (sheet: unknown, role = 'employee') =>
+const mountIt = (sheet: unknown, level: RoleLevel = 'employee') =>
   mount(SheetActions, {
     props: {
       sheet: sheet as never,
       isOwner: true,
-      role: role as never,
+      level,
       invalidate: vi.fn(async () => {}),
     },
     global: { plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]] },

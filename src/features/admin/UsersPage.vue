@@ -6,6 +6,7 @@ import { useDebounceFn } from '@vueuse/core';
 import { MoreHorizontal, Pencil, Mail, UserX, UserCheck } from 'lucide-vue-next';
 import { usersApi } from '@/api/users.api';
 import { teamsApi } from '@/api/teams.api';
+import { rolesApi } from '@/api/roles.api';
 import type { PublicUser } from '@/api/types';
 import { fullName } from '@/lib/format';
 import { messageFor } from '@/api/errors';
@@ -22,7 +23,6 @@ import {
   DropdownMenu,
   ConfirmDialog,
 } from '@/components/ui';
-import { ROLE_OPTIONS, roleLabel } from './roles';
 import UserFormDrawer from './UserFormDrawer.vue';
 
 const qc = useQueryClient();
@@ -42,11 +42,16 @@ watch([role, active], () => {
 });
 const params = computed(() => ({
   search: debounced.value || undefined,
-  role: role.value === 'all' ? undefined : role.value,
+  roleId: role.value === 'all' ? undefined : role.value,
   isActive: active.value === 'all' ? undefined : (active.value as 'true' | 'false'),
   page: page.value,
 }));
 const q = useQuery({ queryKey: ['users', params], queryFn: () => usersApi.list(params.value) });
+const roles = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
+const roleOptions = computed(() => [
+  { value: 'all', label: 'All roles' },
+  ...(roles.data.value ?? []).map((r) => ({ value: r.id, label: r.name })),
+]);
 const teams = useQuery({ queryKey: ['teams', 'all'], queryFn: () => teamsApi.list({ pageSize: 100 }) });
 const teamName = (id: string | null) => teams.data.value?.data.find((t) => t.id === id)?.name ?? '—';
 
@@ -102,8 +107,10 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
     accessorKey: 'role',
     header: 'Role',
     cell: ({ row }) =>
-      h(Badge, { tone: row.original.role === 'admin' ? 'indigo' : 'neutral' }, () =>
-        roleLabel(row.original.role),
+      h(
+        Badge,
+        { tone: row.original.role.level === 'admin' ? 'indigo' : 'neutral' },
+        () => row.original.role.name,
       ),
   },
   { id: 'team', header: 'Team', cell: ({ row }) => teamName(row.original.teamId) },
@@ -172,7 +179,7 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
     </FormField>
     <FormField label="Role" name="role">
       <template #default="{ id }">
-        <Select :id="id" v-model="role" :options="[{ value: 'all', label: 'All roles' }, ...ROLE_OPTIONS]" />
+        <Select :id="id" v-model="role" :options="roleOptions" />
       </template>
     </FormField>
     <FormField label="Status" name="active">

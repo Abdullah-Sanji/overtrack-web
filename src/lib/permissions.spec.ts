@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { hasPerm } from './permissions';
+import { makeUser } from '@/test/fixtures';
+import type { RoleLevel } from '@/api/types';
 
-const u = (role: string) => ({ role }) as never;
+const u = (level: RoleLevel) => makeUser({ level });
 
 describe('permissions', () => {
   it('admin', () => {
@@ -12,8 +14,10 @@ describe('permissions', () => {
     expect(hasPerm(u('admin'), 'finance')).toBe(true);
     expect(hasPerm(u('employee'), 'finance')).toBe(false);
   });
-  it('manager roles', () => {
-    expect(hasPerm(u('tech_lead'), 'manager')).toBe(true);
+  it('manager levels', () => {
+    expect(hasPerm(u('manager'), 'manager')).toBe(true);
     expect(hasPerm(u('employee'), 'manager')).toBe(false);
+    expect(hasPerm(u('finance'), 'approver')).toBe(true);
+    expect(hasPerm(null, 'manager')).toBe(false);
   });
 });

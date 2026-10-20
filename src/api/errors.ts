@@ -18,6 +18,13 @@ export class ApiError extends Error {
 }
 
 const MESSAGES: Record<string, string> = {
+  ROLE_NAME_TAKEN: 'A role with that name already exists.',
+  ROLE_IS_SYSTEM: 'Built-in roles cannot be deleted or re-levelled.',
+  ROLE_IN_USE: 'Users still have this role. Move them to another role first.',
+  CANNOT_DEMOTE_SELF: 'You cannot remove admin level from your own role.',
+  USER_HAS_HISTORY: 'This user has history (sheets, approvals or audit entries). Deactivate them instead.',
+  CANNOT_DELETE_SELF: 'You cannot delete your own account.',
+  TEAM_IN_USE: 'This team still has members or sheets. Move the members first, or deactivate the team.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
   USER_INACTIVE: 'This account is inactive. Contact an admin.',
   TOKEN_EXPIRED: 'Your session expired. Please sign in again.',

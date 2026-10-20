@@ -76,6 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => Boolean(user.value));
   const role = computed(() => user.value?.role ?? null);
+  const level = computed(() => user.value?.role.level ?? null);
   const can = (perm: Perm) => hasPerm(user.value, perm);
 
   return {
@@ -89,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     setSessionLostHandler,
     isAuthenticated,
     role,
+    level,
     can,
     setUser: (u: PublicUser) => {
       user.value = u;

@@ -4,12 +4,14 @@ import { computed, ref, watch } from 'vue';
 import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { z } from 'zod';
-import type { PublicUser, TeamSummary, UserRole } from '@/api/types';
+import { useQuery } from '@tanstack/vue-query';
+import type { PublicUser, TeamSummary } from '@/api/types';
+import { rolesApi } from '@/api/roles.api';
 import { usersApi } from '@/api/users.api';
 import { messageFor, fieldErrors, ApiError } from '@/api/errors';
 import { useToast } from '@/components/ui/useToast';
 import { Drawer, Button, FormField, Input, Select } from '@/components/ui';
-import { ROLE_OPTIONS } from './roles';
+import { levelLabel } from './roles';
 
 const props = defineProps<{ open: boolean; user?: PublicUser | null; teams: TeamSummary[] }>();
 const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [u: PublicUser] }>();
@@ -20,7 +22,7 @@ const schema = toTypedSchema(
     firstName: z.string().trim().min(1, 'Enter a first name').max(60),
     lastName: z.string().trim().min(1, 'Enter a last name').max(60),
     email: z.string().trim().email('Enter a valid email'),
-    role: z.enum(['employee', 'tech_lead', 'delivery_manager', 'cto', 'finance', 'admin']),
+    roleId: z.string().min(1, 'Pick a role'),
     teamId: z.string().nullable(),
     employeeCode: z.string().trim().max(20).nullable(),
     timezone: z.string().trim().min(1, 'Enter a timezone').max(64),
@@ -32,7 +34,7 @@ function initialValues(u?: PublicUser | null) {
         firstName: u.firstName,
         lastName: u.lastName,
         email: u.email,
-        role: u.role,
+        roleId: u.role.id,
         teamId: u.teamId,
         employeeCode: u.employeeCode,
         timezone: u.timezone,
@@ -41,7 +43,7 @@ function initialValues(u?: PublicUser | null) {
         firstName: '',
         lastName: '',
         email: '',
-        role: 'employee' as UserRole,
+        roleId: '',
         teamId: null,
         employeeCode: null,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -55,11 +57,20 @@ const blurOnly = { validateOnBlur: true, validateOnModelUpdate: false };
 const [firstName, firstNameAttrs] = defineField('firstName', blurOnly);
 const [lastName, lastNameAttrs] = defineField('lastName', blurOnly);
 const [email, emailAttrs] = defineField('email', blurOnly);
-const [role] = defineField('role');
+const [roleId] = defineField('roleId');
 const [teamId] = defineField('teamId');
 const [employeeCode, employeeCodeAttrs] = defineField('employeeCode', blurOnly);
 const [timezone, timezoneAttrs] = defineField('timezone', blurOnly);
 const formError = ref('');
+const roles = useQuery({ queryKey: ['roles'], queryFn: () => rolesApi.list() });
+const roleOptions = computed(() =>
+  (roles.data.value ?? []).map((r) => ({ value: r.id, label: r.name, description: levelLabel(r.level) })),
+);
+function applyDefaultRole(list = roles.data.value) {
+  if (!props.user && !roleId.value && list)
+    roleId.value = list.find((r) => r.isSystem && r.level === 'employee')?.id ?? list[0]?.id ?? '';
+}
+watch(roles.data, (list) => applyDefaultRole(list), { immediate: true });
 const teamOptions = computed(() => [
   { value: 'none', label: 'No team' },
   ...props.teams.map((t) => ({ value: t.id, label: t.name })),
@@ -71,6 +82,7 @@ watch(
     if (!o) return;
     formError.value = '';
     resetForm({ values: initialValues(props.user) });
+    applyDefaultRole();
   },
 );
 
@@ -82,7 +94,7 @@ const submit = handleSubmit(async (v) => {
       ? await usersApi.update(props.user.id, {
           firstName: body.firstName,
           lastName: body.lastName,
-          role: body.role,
+          roleId: body.roleId,
           teamId: body.teamId,
           employeeCode: body.employeeCode,
           timezone: body.timezone,
@@ -166,14 +178,15 @@ function requestClose() {
           />
         </template>
       </FormField>
-      <FormField label="Role" name="role" :error="errors.role" required>
+      <FormField label="Role" name="roleId" :error="errors.roleId" required>
         <template #default="{ id, invalid }">
           <Select
             :id="id"
-            :model-value="role ?? null"
-            :options="ROLE_OPTIONS"
+            :model-value="roleId || null"
+            :options="roleOptions"
+            placeholder="Pick a role"
             :invalid="invalid"
-            @update:model-value="role = $event as UserRole"
+            @update:model-value="roleId = $event"
           />
         </template>
       </FormField>
@@ -226,7 +239,7 @@ function requestClose() {
     </form>
     <template #footer>
       <Button variant="outline" @click="requestClose">Cancel</Button>
-      <Button type="submit" form="user-form" :loading="isSubmitting">{{
+      <Button type="submit" form="user-form" :loading="isSubmitting" :disabled="roles.isPending.value">{{
         user ? 'Save changes' : 'Send invite'
       }}</Button>
     </template>

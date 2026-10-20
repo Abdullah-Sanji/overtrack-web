@@ -1,10 +1,10 @@
-import { get, post, patch } from './client';
-import type { Paged, PublicUser, UserRole } from './types';
+import { get, post, patch, del } from './client';
+import type { Paged, PublicUser, RoleRef } from './types';
 export interface UserInput {
   firstName: string;
   lastName: string;
   email: string;
-  role: UserRole;
+  roleId: string;
   teamId?: string | null;
   employeeCode?: string | null;
   timezone?: string;
@@ -14,13 +14,13 @@ export interface DirectoryUser {
   firstName: string;
   lastName: string;
   teamId: string | null;
-  role: UserRole;
+  role: RoleRef;
 }
 export const usersApi = {
   list: (
     q: {
       search?: string;
-      role?: string;
+      roleId?: string;
       teamId?: string;
       isActive?: 'true' | 'false';
       page?: number;
@@ -35,5 +35,6 @@ export const usersApi = {
     patch<{ data: PublicUser }>(`/users/${id}`, b).then((r) => r.data),
   deactivate: (id: string) => post<{ data: PublicUser }>(`/users/${id}/deactivate`).then((r) => r.data),
   reactivate: (id: string) => post<{ data: PublicUser }>(`/users/${id}/reactivate`).then((r) => r.data),
+  remove: (id: string) => del<void>(`/users/${id}`),
   resendInvite: (id: string) => post<void>(`/users/${id}/resend-invite`),
 };

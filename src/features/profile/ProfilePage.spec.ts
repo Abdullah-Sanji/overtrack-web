@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import ProfilePage from './ProfilePage.vue';
 import { authApi } from '@/api/auth.api';
+import { makeUser } from '@/test/fixtures';
 import { useAuthStore } from '@/stores/auth.store';
 
 const push = vi.fn();
@@ -11,15 +12,14 @@ vi.mock('@/api/auth.api', () => ({
   authApi: { updateMe: vi.fn(), changePassword: vi.fn(), logout: vi.fn() },
 }));
 
-const user = {
+const user = makeUser({
   id: 'u',
-  role: 'employee',
   firstName: 'Eve',
   lastName: 'P',
   email: 'e@x.y',
   employeeCode: 'E1',
   timezone: 'UTC',
-};
+});
 
 function mountPage() {
   const pinia = createTestingPinia({

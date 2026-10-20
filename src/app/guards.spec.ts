@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { resolveNavigation } from './guards';
+import { makeUser } from '@/test/fixtures';
+import type { RoleLevel } from '@/api/types';
 
-const auth = (role: string | null) => ({
-  isAuthenticated: role !== null,
-  user: role ? ({ role } as never) : null,
+const auth = (level: RoleLevel | null) => ({
+  isAuthenticated: level !== null,
+  user: level ? makeUser({ level }) : null,
 });
 
 describe('resolveNavigation', () => {

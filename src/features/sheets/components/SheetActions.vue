@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Send, Undo2, RotateCcw } from 'lucide-vue-next';
-import type { SheetDetail, UserRole } from '@/api/types';
+import type { RoleLevel, SheetDetail } from '@/api/types';
 import { workflowApi } from '@/api/workflow.api';
 import { Button, ConfirmDialog } from '@/components/ui';
 import { useSheetAction } from '../useSheetAction';
 const props = defineProps<{
   sheet: SheetDetail;
   isOwner: boolean;
-  role: UserRole;
+  level: RoleLevel;
   invalidate: () => Promise<unknown>;
 }>();
 const { run, pending } = useSheetAction(props.invalidate);
@@ -21,7 +21,7 @@ const canWithdraw = computed(
     props.sheet.status === 'submitted' &&
     !props.sheet.steps.some((s) => s.status === 'approved'),
 );
-const canReopen = computed(() => props.role === 'admin' && props.sheet.status === 'approved');
+const canReopen = computed(() => props.level === 'admin' && props.sheet.status === 'approved');
 const dialog = ref<null | 'submit' | 'withdraw' | 'reopen'>(null);
 const chainText = computed(() =>
   props.sheet.steps.length

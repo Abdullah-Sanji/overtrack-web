@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useUiStore } from '@/stores/ui.store';
 import { authApi } from '@/api/auth.api';
 import { ApiError, messageFor, fieldErrors } from '@/api/errors';
-import { roleLabel } from '@/features/admin/roles';
 import { useToast } from '@/components/ui/useToast';
 import { PageHeader, Card, Button, FormField, Input, PasswordInput, Switch } from '@/components/ui';
 
@@ -103,7 +102,7 @@ const savePassword = pw.handleSubmit(async (v) => {
         <dt class="text-muted-foreground">Email</dt>
         <dd>{{ auth.user?.email }}</dd>
         <dt class="text-muted-foreground">Role</dt>
-        <dd>{{ auth.user ? roleLabel(auth.user.role) : '' }}</dd>
+        <dd>{{ auth.user?.role.name }}</dd>
         <dt class="text-muted-foreground">Employee code</dt>
         <dd class="num">{{ auth.user?.employeeCode ?? '—' }}</dd>
       </dl>
@@ -150,7 +149,11 @@ const savePassword = pw.handleSubmit(async (v) => {
           </template>
         </FormField>
         <div class="flex flex-col gap-2">
-          <Switch :model-value="ui.theme === 'dark'" label="Dark mode" @update:model-value="ui.toggleTheme()" />
+          <Switch
+            :model-value="ui.theme === 'dark'"
+            label="Dark mode"
+            @update:model-value="ui.toggleTheme()"
+          />
           <Button type="submit" :loading="profile.isSubmitting.value">Save profile</Button>
         </div>
       </form>

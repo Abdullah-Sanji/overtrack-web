@@ -1,12 +1,26 @@
-import type { UserRole } from '@/api/types';
+import type { RoleLevel } from '@/api/types';
 
-export const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
-  { value: 'employee', label: 'Employee' },
-  { value: 'tech_lead', label: 'Tech lead' },
-  { value: 'delivery_manager', label: 'Delivery manager' },
-  { value: 'cto', label: 'CTO' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'admin', label: 'Admin' },
+export const LEVEL_OPTIONS: Array<{ value: RoleLevel; label: string; description: string }> = [
+  {
+    value: 'employee',
+    label: 'Employee',
+    description: 'Own sheets only. Can approve when named on a chain.',
+  },
+  {
+    value: 'manager',
+    label: 'Manager',
+    description: 'Plus team month view and exports for teams whose chain names them.',
+  },
+  {
+    value: 'finance',
+    label: 'Finance',
+    description: 'Manager rights for all teams, mark sheets paid, view own audit actions.',
+  },
+  {
+    value: 'admin',
+    label: 'Admin',
+    description: 'Everything, including users, teams, chains, roles and overtime types.',
+  },
 ];
 
-export const roleLabel = (r: UserRole) => ROLE_OPTIONS.find((o) => o.value === r)?.label ?? r;
+export const levelLabel = (l: RoleLevel) => LEVEL_OPTIONS.find((o) => o.value === l)?.label ?? l;

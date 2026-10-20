@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import SheetPage from './SheetPage.vue';
+import { makeUser } from '@/test/fixtures';
 
 vi.mock('vue-router', () => ({
   RouterLink: { template: '<a><slot/></a>' },
@@ -53,7 +54,7 @@ describe('SheetPage', () => {
     const pinia = createTestingPinia({
       stubActions: false,
       createSpy: vi.fn,
-      initialState: { auth: { user: { id: 'me', role: 'employee', firstName: 'Em', lastName: 'Ployee' } } },
+      initialState: { auth: { user: makeUser({ id: 'me', firstName: 'Em', lastName: 'Ployee' }) } },
     });
     const w = mount(SheetPage, {
       props: { id: 's1' },

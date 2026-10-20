@@ -1,4 +1,4 @@
-import { get, post, patch } from './client';
+import { get, post, patch, del } from './client';
 import type { Paged, PublicUser, TeamSummary } from './types';
 export const teamsApi = {
   list: (q: { search?: string; isActive?: 'true' | 'false'; page?: number; pageSize?: number } = {}) =>
@@ -11,4 +11,5 @@ export const teamsApi = {
     id: string,
     b: Partial<{ name: string; description: string | null; techLeadId: string | null; isActive: boolean }>,
   ) => patch<{ data: TeamSummary }>(`/teams/${id}`, b).then((r) => r.data),
+  remove: (id: string) => del<void>(`/teams/${id}`),
 };

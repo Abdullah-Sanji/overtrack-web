@@ -1,4 +1,16 @@
-export type UserRole = 'employee' | 'tech_lead' | 'delivery_manager' | 'cto' | 'finance' | 'admin';
+export type RoleLevel = 'employee' | 'manager' | 'finance' | 'admin';
+export interface RoleRef {
+  id: string;
+  name: string;
+  level: RoleLevel;
+}
+export interface RoleView extends RoleRef {
+  isSystem: boolean;
+  systemKey: string | null;
+  userCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
 export type SheetStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'paid';
 export type StepStatus = 'pending' | 'approved' | 'rejected' | 'skipped';
 
@@ -16,7 +28,7 @@ export interface Person {
 export interface PublicUser extends Person {
   email: string;
   employeeCode: string | null;
-  role: UserRole;
+  role: RoleRef;
   teamId: string | null;
   timezone: string;
   isActive: boolean;

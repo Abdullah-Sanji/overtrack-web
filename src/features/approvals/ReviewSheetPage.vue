@@ -40,7 +40,9 @@ const named = computed(() =>
 );
 const canAct = computed(
   () =>
-    sheet.data.value?.status === 'submitted' && current.value && (named.value || auth.user?.role === 'admin'),
+    sheet.data.value?.status === 'submitted' &&
+    current.value &&
+    (named.value || auth.user?.role.level === 'admin'),
 );
 const dialog = ref<null | 'approve' | 'reject'>(null);
 async function decide(p: { comment: string; overrideReason?: string }) {

@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import DashboardPage from './DashboardPage.vue';
+import { makeUser } from '@/test/fixtures';
 
 vi.mock('vue-router', () => ({
   RouterLink: { template: '<a><slot/></a>' },
@@ -40,7 +41,7 @@ describe('DashboardPage', () => {
       stubActions: false,
       createSpy: vi.fn,
       initialState: {
-        auth: { user: { id: 'u', role: 'finance', firstName: 'Fay', lastName: 'F' } },
+        auth: { user: makeUser({ id: 'u', level: 'finance', firstName: 'Fay', lastName: 'F' }) },
       },
     });
     const w = mount(DashboardPage, {

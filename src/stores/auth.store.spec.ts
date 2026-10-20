@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { queryClient } from '@/app/query';
+import { makeUser } from '@/test/fixtures';
 import { useAuthStore } from './auth.store';
 import { useNotificationsStore } from './notifications.store';
 
 vi.mock('@/api/auth.api', () => ({
   authApi: {
-    login: vi.fn(async () => ({ accessToken: 't', user: { id: 'u', role: 'employee' } })),
+    login: vi.fn(async () => ({ accessToken: 't', user: makeUser({ id: 'u' }) })),
     logout: vi.fn(async () => {}),
     refresh: vi.fn(async () => 't'),
-    me: vi.fn(async () => ({ id: 'u', role: 'employee' })),
+    me: vi.fn(async () => makeUser({ id: 'u' })),
   },
 }));
 vi.mock('@/api/notifications.api', () => ({ notificationsApi: { list: vi.fn(async () => ({})) } }));
