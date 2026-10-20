@@ -54,6 +54,7 @@ function addOvertime() {
     <template v-else-if="month.data.value">
       <StatTile
         label="This month"
+        tone="info"
         :value="`${formatHours(month.data.value.totalHours)} h`"
         hint="Overtime hours"
       >
@@ -61,6 +62,7 @@ function addOvertime() {
       </StatTile>
       <StatTile
         label="Weighted"
+        tone="success"
         :value="`${formatHours(month.data.value.totalWeightedHours)} h`"
         hint="After multipliers"
       >
@@ -75,13 +77,19 @@ function addOvertime() {
       </RouterLink>
     </template>
     <RouterLink :to="{ name: 'inbox' }">
-      <StatTile label="Waiting for you" :value="waiting.data.value?.meta.total ?? '–'" hint="Approvals">
+      <StatTile
+        label="Waiting for you"
+        tone="warning"
+        :value="waiting.data.value?.meta.total ?? '–'"
+        hint="Approvals"
+      >
         <template #icon><Inbox class="h-5 w-5" /></template>
       </StatTile>
     </RouterLink>
     <RouterLink v-if="auth.can('finance')" :to="{ name: 'payments' }">
       <StatTile
         label="Ready for payment"
+        tone="success"
         :value="unpaid.data.value?.meta.total ?? '–'"
         hint="Approved, unpaid"
       >
