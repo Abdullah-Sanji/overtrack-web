@@ -3,15 +3,19 @@ import { h, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { ColumnDef } from '@tanstack/vue-table';
-import { AlertTriangle, Pencil, Network } from 'lucide-vue-next';
+import { AlertTriangle, Pencil, Network, Trash2 } from 'lucide-vue-next';
 import { teamsApi } from '@/api/teams.api';
 import type { TeamSummary } from '@/api/types';
 import { fullName } from '@/lib/format';
 import { messageFor } from '@/api/errors';
+import { useConfirm } from '@/composables/useConfirm';
+import { useToast } from '@/components/ui/useToast';
 import { PageHeader, Button, DataTable, Pagination, Badge } from '@/components/ui';
 import TeamFormDrawer from './TeamFormDrawer.vue';
 
 const qc = useQueryClient();
+const { confirm } = useConfirm();
+const { toast } = useToast();
 const page = ref(1);
 const q = useQuery({ queryKey: ['teams', page], queryFn: () => teamsApi.list({ page: page.value }) });
 const open = ref(false);
@@ -19,6 +23,23 @@ const editing = ref<TeamSummary | null>(null);
 function create() {
   editing.value = null;
   open.value = true;
+}
+
+async function remove(t: TeamSummary) {
+  const ok = await confirm({
+    title: `Delete ${t.name}?`,
+    description: 'Its approval chain is removed too. Teams with members or sheets cannot be deleted.',
+    confirmLabel: 'Delete',
+    tone: 'destructive',
+  });
+  if (!ok) return;
+  try {
+    await teamsApi.remove(t.id);
+    toast({ title: 'Team deleted', tone: 'success' });
+    await qc.invalidateQueries({ queryKey: ['teams'] });
+  } catch (e) {
+    toast({ title: messageFor(e), tone: 'error' });
+  }
 }
 
 const columns: ColumnDef<TeamSummary, unknown>[] = [
@@ -77,6 +98,16 @@ const columns: ColumnDef<TeamSummary, unknown>[] = [
             },
           },
           () => h(Pencil, { class: 'h-4 w-4' }),
+        ),
+        h(
+          Button,
+          {
+            variant: 'ghost',
+            size: 'sm',
+            'aria-label': `Delete team ${row.original.name}`,
+            onClick: () => remove(row.original),
+          },
+          () => h(Trash2, { class: 'h-4 w-4 text-destructive' }),
         ),
       ]),
   },

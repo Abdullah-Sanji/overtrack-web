@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-vue-next';
 import { useToast } from './useToast';
+import Button from './Button.vue';
 const { toasts, dismiss } = useToast();
 const icons = { success: CheckCircle2, error: AlertCircle, info: Info };
 const tones = {
@@ -31,6 +32,17 @@ const tones = {
       <div class="min-w-0 flex-1">
         <p class="font-medium">{{ t.title }}</p>
         <p v-if="t.description" class="text-sm text-muted-foreground">{{ t.description }}</p>
+        <Button
+          v-if="t.action"
+          variant="outline"
+          size="sm"
+          class="mt-2"
+          @click="
+            t.action.onClick();
+            dismiss(t.id);
+          "
+          >{{ t.action.label }}</Button
+        >
       </div>
       <button
         class="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-control text-muted-foreground hover:bg-muted"

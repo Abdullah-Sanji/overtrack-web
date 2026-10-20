@@ -3,13 +3,15 @@ import { computed, h, ref, watch } from 'vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { useDebounceFn } from '@vueuse/core';
-import { MoreHorizontal, Pencil, Mail, UserX, UserCheck } from 'lucide-vue-next';
+import { MoreHorizontal, Pencil, Mail, UserX, UserCheck, Trash2 } from 'lucide-vue-next';
 import { usersApi } from '@/api/users.api';
 import { teamsApi } from '@/api/teams.api';
 import { rolesApi } from '@/api/roles.api';
 import type { PublicUser } from '@/api/types';
 import { fullName } from '@/lib/format';
-import { messageFor } from '@/api/errors';
+import { ApiError, messageFor } from '@/api/errors';
+import { useAuthStore } from '@/stores/auth.store';
+import { useConfirm } from '@/composables/useConfirm';
 import { useToast } from '@/components/ui/useToast';
 import {
   PageHeader,
@@ -27,6 +29,8 @@ import UserFormDrawer from './UserFormDrawer.vue';
 
 const qc = useQueryClient();
 const { toast } = useToast();
+const auth = useAuthStore();
+const { confirm } = useConfirm();
 const search = ref('');
 const debounced = ref('');
 const role = ref('all');
@@ -81,6 +85,36 @@ async function confirmToggle() {
     toast({ title: messageFor(e), tone: 'error' });
   } finally {
     toggleLoading.value = false;
+  }
+}
+async function remove(u: PublicUser) {
+  const ok = await confirm({
+    title: `Delete ${fullName(u)}?`,
+    description:
+      'This removes the account permanently. Users with sheets or approvals cannot be deleted and should be deactivated instead.',
+    confirmLabel: 'Delete',
+    tone: 'destructive',
+  });
+  if (!ok) return;
+  try {
+    await usersApi.remove(u.id);
+    toast({ title: 'User deleted', tone: 'success' });
+    await invalidate();
+  } catch (e) {
+    if (e instanceof ApiError && e.code === 'USER_HAS_HISTORY' && u.isActive) {
+      toast({
+        title: messageFor(e),
+        tone: 'error',
+        action: {
+          label: 'Deactivate instead',
+          onClick: () => {
+            toggling.value = u;
+          },
+        },
+      });
+    } else {
+      toast({ title: messageFor(e), tone: 'error' });
+    }
   }
 }
 function invite() {
@@ -155,6 +189,16 @@ const columns: ColumnDef<PublicUser, unknown>[] = [
                     toggling.value = row.original;
                   },
                 },
+            ...(row.original.id === auth.user?.id
+              ? []
+              : [
+                  {
+                    label: 'Delete',
+                    icon: Trash2,
+                    destructive: true,
+                    onSelect: () => remove(row.original),
+                  },
+                ]),
           ],
         },
         {
