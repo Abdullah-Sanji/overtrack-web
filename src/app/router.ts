@@ -64,6 +64,12 @@ export const router = createRouter({
           meta: { perm: 'admin' },
         },
         {
+          name: 'admin-roles',
+          path: 'admin/roles',
+          component: () => import('@/features/admin/RolesPage.vue'),
+          meta: { perm: 'admin' },
+        },
+        {
           name: 'admin-chain',
           path: 'admin/teams/:id/chain',
           component: () => import('@/features/admin/ChainEditorPage.vue'),

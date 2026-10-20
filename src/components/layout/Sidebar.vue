@@ -9,6 +9,7 @@ import {
   Wallet,
   UserCog,
   Network,
+  Shield,
   Timer,
   ScrollText,
   ChevronsLeft,
@@ -38,6 +39,7 @@ const items = computed(() =>
     { name: 'payments', label: 'Payments', icon: Wallet, show: auth.can('finance') },
     { name: 'admin-users', label: 'Users', icon: UserCog, show: auth.can('admin'), group: 'Admin' },
     { name: 'admin-teams', label: 'Teams', icon: Network, show: auth.can('admin'), group: 'Admin' },
+    { name: 'admin-roles', label: 'Roles', icon: Shield, show: auth.can('admin'), group: 'Admin' },
     {
       name: 'admin-overtime-types',
       label: 'Overtime types',
