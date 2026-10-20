@@ -9,10 +9,14 @@ import { useAuthStore } from '@/stores/auth.store';
 import { messageFor, fieldErrors } from '@/api/errors';
 import { Button, FormField, Input, PasswordInput } from '@/components/ui';
 import AuthCard from './AuthCard.vue';
+import { useGoogleIdentity } from './useGoogleIdentity';
 
 const router = useRouter();
 const route = useRoute();
 const auth = useAuthStore();
+// With a client id the page is Google-first; without one it is the plain password form (local dev, e2e).
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const showPassword = ref(!googleClientId);
 const schema = toTypedSchema(
   z.object({
     email: z.string().email('Enter a valid email'),
@@ -48,17 +52,61 @@ const submit = handleSubmit(async (v) => {
     formError.value = messageFor(e);
   }
 }, focusFirstInvalid);
+
+const buttonEl = ref<HTMLElement | null>(null);
+useGoogleIdentity({
+  buttonEl,
+  clientId: googleClientId,
+  onCredential: async (credential) => {
+    formError.value = '';
+    try {
+      await auth.loginWithGoogle(credential);
+      router.push(redirectTarget());
+    } catch (e) {
+      formError.value = messageFor(e);
+    }
+  },
+  onUnavailable: () => {
+    formError.value = 'Google sign-in is unavailable';
+    showPassword.value = true;
+  },
+});
 </script>
 <template>
-  <AuthCard title="Sign in" description="Use the email and password your admin gave you.">
-    <form class="space-y-4" novalidate @submit.prevent="submit">
-      <p
-        v-if="formError"
-        role="alert"
-        class="rounded-control border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-      >
-        {{ formError }}
+  <AuthCard
+    title="Sign in"
+    :description="
+      googleClientId
+        ? 'Sign in with your company Google account.'
+        : 'Use the email and password your admin gave you.'
+    "
+  >
+    <p
+      v-if="formError"
+      role="alert"
+      class="mb-4 rounded-control border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+    >
+      {{ formError }}
+    </p>
+    <div v-if="googleClientId" class="space-y-4">
+      <div ref="buttonEl" class="flex min-h-11 justify-center"></div>
+      <p v-if="!showPassword" class="text-center text-sm">
+        <button
+          type="button"
+          class="text-primary underline-offset-2 hover:underline"
+          @click="showPassword = true"
+        >
+          Sign in with password
+        </button>
       </p>
+    </div>
+    <form
+      v-if="showPassword"
+      class="space-y-4"
+      :class="googleClientId ? 'mt-6' : ''"
+      novalidate
+      @submit.prevent="submit"
+    >
       <FormField label="Email" name="email" :error="errors.email" required>
         <template #default="{ id, invalid }">
           <Input

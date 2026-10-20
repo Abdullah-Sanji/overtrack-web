@@ -6,6 +6,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_GOOGLE_CLIENT_ID=
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN pnpm build
 
 FROM nginx:1.27-alpine

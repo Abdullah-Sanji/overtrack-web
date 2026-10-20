@@ -9,6 +9,8 @@ cp .env.example .env            # VITE_API_URL=http://localhost:3000/api/v1
 pnpm install && pnpm dev        # http://localhost:5173  (API must be running and seeded)
 ```
 
+Set `VITE_GOOGLE_CLIENT_ID` (same OAuth client id as the API's `GOOGLE_CLIENT_ID`) to show the "Sign in with Google" button; leave it unset for the plain password form, which the e2e tests use. Setup steps are in the API README under "Google sign-in".
+
 ## Test
 
 ```bash
@@ -38,4 +40,4 @@ docker build -t over-track-web .   # served by nginx, /api proxied to the api se
 ```
 
 The image is built with `VITE_API_URL=/api/v1` by default; override with
-`--build-arg VITE_API_URL=...`.
+`--build-arg VITE_API_URL=...`. Pass `--build-arg VITE_GOOGLE_CLIENT_ID=...` to bake in the Google button; `docker-compose.prod.yml` in the API repo forwards `GOOGLE_CLIENT_ID` for this.
