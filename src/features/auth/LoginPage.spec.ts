@@ -27,10 +27,13 @@ async function signIn() {
   expect(useAuthStore().login).toHaveBeenCalledWith('a@b.co', 'Password123!');
 }
 
+// The developer's .env may set VITE_GOOGLE_CLIENT_ID; these suites pin the password-only mode explicitly.
 describe('LoginPage', () => {
   beforeEach(() => {
     push.mockClear();
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '');
   });
+  afterEach(() => vi.unstubAllEnvs());
 
   it('validates on submit and logs in then redirects', async () => {
     mockRoute.query = { redirect: '/sheets/9' };
@@ -46,6 +49,8 @@ describe('LoginPage', () => {
 });
 
 describe('LoginPage without Google', () => {
+  beforeEach(() => vi.stubEnv('VITE_GOOGLE_CLIENT_ID', ''));
+  afterEach(() => vi.unstubAllEnvs());
   it('never loads the Google script and shows no alert after the timeout', async () => {
     vi.useFakeTimers();
     mockRoute.query = {};
@@ -61,6 +66,8 @@ describe('LoginPage without Google', () => {
 });
 
 describe('LoginPage blur validation', () => {
+  beforeEach(() => vi.stubEnv('VITE_GOOGLE_CLIENT_ID', ''));
+  afterEach(() => vi.unstubAllEnvs());
   it('shows the email error on blur without submitting', async () => {
     mockRoute.query = {};
     const w = mount(LoginPage, { global: { plugins: [createTestingPinia({ createSpy: vi.fn })] } });
