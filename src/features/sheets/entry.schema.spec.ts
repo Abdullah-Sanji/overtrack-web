@@ -23,9 +23,19 @@ describe('entrySchema', () => {
     expect(s.safeParse({ ...base, date: '2026-10-01' }).error?.issues[0].path).toEqual(['date']);
     expect(s.safeParse({ ...base, date: '2026-09-25' }).error?.issues[0].message).toMatch(/future/);
   });
-  it('rejects end before start and bad quarter steps', () => {
-    expect(s.safeParse({ ...base, endTime: '17:00' }).error?.issues[0].path).toEqual(['endTime']);
+  it('treats an end at or before the start as the next day', () => {
+    expect(deriveHours('22:00', '02:00')).toBe(4);
+    expect(deriveHours('18:00', '18:00')).toBe(0);
+    expect(s.safeParse({ ...base, startTime: '22:00', endTime: '02:00' }).success).toBe(true);
+  });
+  it('rejects equal start and end, spans over 16 hours, and bad quarter steps', () => {
+    expect(s.safeParse({ ...base, endTime: '18:00' }).error?.issues[0].path).toEqual(['endTime']);
+    expect(s.safeParse({ ...base, startTime: '20:00', endTime: '18:00' }).error?.issues[0].path).toEqual(['endTime']);
     expect(s.safeParse({ ...base, hours: 1.3 }).success).toBe(false);
+  });
+  it('rejects hours larger than the time span', () => {
+    expect(s.safeParse({ ...base, hours: 2.75 }).error?.issues[0].path).toEqual(['hours']);
+    expect(s.safeParse({ ...base, hours: 2 }).success).toBe(true);
   });
   it('only accepts http(s) work item URLs', () => {
     expect(s.safeParse({ ...base, workItemUrl: 'javascript:alert(1)' }).success).toBe(false);
