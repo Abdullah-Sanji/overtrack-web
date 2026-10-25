@@ -20,7 +20,7 @@ const team = useQuery({ queryKey: ['team', props.id], queryFn: () => teamsApi.ge
 const chain = useQuery({ queryKey: ['chain', props.id], queryFn: () => chainsApi.get(props.id) });
 const users = useQuery({
   queryKey: ['users', 'pickers'],
-  queryFn: () => usersApi.list({ isActive: 'true', pageSize: 100 }),
+  queryFn: () => usersApi.list({ isActive: 'true', pageSize: 200 }),
 });
 const inactivePeople = computed(() => {
   const found = new Map<string, ChainStepView['approver']>();
