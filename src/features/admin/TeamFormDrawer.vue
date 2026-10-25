@@ -19,7 +19,7 @@ const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [t: TeamSummary] 
 const { toast } = useToast();
 const users = useQuery({
   queryKey: ['users', 'pickers'],
-  queryFn: () => usersApi.list({ isActive: 'true', pageSize: 100 }),
+  queryFn: () => usersApi.list({ isActive: 'true', pageSize: 200 }),
 });
 const people = computed(() =>
   (users.data.value?.data ?? []).map((u) => ({ value: u.id, label: fullName(u) })),
