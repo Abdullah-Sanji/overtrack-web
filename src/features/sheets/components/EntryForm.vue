@@ -12,7 +12,7 @@ import { overtimeTypesApi } from '@/api/overtime-types.api';
 import { usersApi } from '@/api/users.api';
 import { messageFor, fieldErrors } from '@/api/errors';
 import { periodBounds, todayIso } from '@/lib/dates';
-import { fullName } from '@/lib/format';
+import { formatPeriod, fullName } from '@/lib/format';
 import { useToast } from '@/components/ui/useToast';
 import {
   Drawer,
@@ -28,7 +28,12 @@ import {
 import { entrySchema, deriveHours } from '../entry.schema';
 
 const props = defineProps<{ open: boolean; sheetId: string; period: string; entry?: EntryView | null }>();
-const emit = defineEmits<{ 'update:open': [v: boolean]; saved: [e: EntryView]; attach: [e: EntryView] }>();
+const emit = defineEmits<{
+  'update:open': [v: boolean];
+  saved: [e: EntryView];
+  attach: [e: EntryView];
+  'open-sheet': [id: string];
+}>();
 const { toast } = useToast();
 const types = useQuery({ queryKey: ['overtime-types'], queryFn: () => overtimeTypesApi.list() });
 const people = useQuery({
@@ -45,7 +50,14 @@ const typeOptions = computed(() =>
 const peopleOptions = computed(() =>
   (people.data.value ?? []).map((u) => ({ value: u.id, label: fullName(u) })),
 );
-const bounds = computed(() => periodBounds(props.period));
+// An existing entry stays on its sheet, so its date is held to that month. A new entry can
+// take any date up to today and is saved to the sheet of that date's month.
+const bounds = computed(() => {
+  const today = todayIso();
+  if (!props.entry) return { min: undefined, max: today };
+  const b = periodBounds(props.period);
+  return { min: b.min, max: b.max < today ? b.max : today };
+});
 
 const emptyValues = () => ({
   date: '',
@@ -59,7 +71,9 @@ const emptyValues = () => ({
 });
 
 const { handleSubmit, defineField, errors, setErrors, resetForm, isSubmitting, meta } = useForm({
-  validationSchema: toTypedSchema(entrySchema(props.period, todayIso())),
+  validationSchema: computed(() =>
+    toTypedSchema(entrySchema(props.entry ? props.period : null, todayIso())),
+  ),
   initialValues: emptyValues(),
 });
 const live = { validateOnBlur: true, validateOnModelUpdate: true };
@@ -75,6 +89,12 @@ const [dateModel, dateAttrs] = defineField('date', live);
 const [startTimeModel, startTimeAttrs] = defineField('startTime', live);
 const [endTimeModel, endTimeAttrs] = defineField('endTime', live);
 const date = nullable(dateModel);
+const otherSheetHint = computed(() => {
+  const p = dateModel.value?.slice(0, 7);
+  return !props.entry && p && /^\d{4}-\d{2}$/.test(p) && p !== props.period
+    ? `This will be saved to your ${formatPeriod(p)} sheet.`
+    : undefined;
+});
 const startTime = nullable(startTimeModel);
 const endTime = nullable(endTimeModel);
 const [hours, hoursAttrs] = defineField('hours', live);
@@ -146,14 +166,29 @@ watch(
 const submit = handleSubmit(async (v) => {
   formError.value = '';
   try {
-    const saved = props.entry
-      ? await sheetsApi.updateEntry(props.sheetId, props.entry.id, v)
-      : await sheetsApi.addEntry(props.sheetId, v);
-    toast({
-      title: props.entry ? 'Entry updated' : 'Entry added',
-      tone: 'success',
-      action: props.entry ? undefined : { label: 'Add attachment', onClick: () => emit('attach', saved) },
-    });
+    let saved: EntryView;
+    if (props.entry) {
+      saved = await sheetsApi.updateEntry(props.sheetId, props.entry.id, v);
+      toast({ title: 'Entry updated', tone: 'success' });
+    } else {
+      const period = v.date.slice(0, 7);
+      const elsewhere = period !== props.period;
+      const sheetId = elsewhere ? (await sheetsApi.forPeriod(period)).id : props.sheetId;
+      saved = await sheetsApi.addEntry(sheetId, v);
+      toast(
+        elsewhere
+          ? {
+              title: `Entry added to ${formatPeriod(period)}`,
+              tone: 'success',
+              action: { label: 'Open sheet', onClick: () => emit('open-sheet', sheetId) },
+            }
+          : {
+              title: 'Entry added',
+              tone: 'success',
+              action: { label: 'Add attachment', onClick: () => emit('attach', saved) },
+            },
+      );
+    }
     emit('saved', saved);
     if (props.entry) {
       emit('update:open', false);
@@ -207,7 +242,7 @@ async function removeAttachment() {
   <Drawer
     :open="open"
     :title="entry ? 'Edit entry' : 'Add overtime entry'"
-    :description="`Period ${period}`"
+    :description="entry ? `Period ${period}` : 'Pick any date up to today'"
     :before-close="guard"
     @update:open="emit('update:open', $event)"
   >
@@ -219,7 +254,7 @@ async function removeAttachment() {
       >
         {{ formError }}
       </p>
-      <FormField label="Date" name="date" :error="errors.date" required>
+      <FormField label="Date" name="date" :error="errors.date" :hint="otherSheetHint" required>
         <template #default="{ id, invalid }">
           <DatePicker
             :id="id"

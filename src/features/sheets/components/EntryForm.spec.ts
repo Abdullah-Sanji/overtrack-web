@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import { createTestingPinia } from '@pinia/testing';
 import { useConfirmStore } from '@/composables/useConfirm';
+import { todayIso } from '@/lib/dates';
 import EntryForm from './EntryForm.vue';
 
 vi.mock('@/api/overtime-types.api', () => ({
@@ -24,6 +25,7 @@ vi.mock('@/api/users.api', () => ({
 }));
 vi.mock('@/api/sheets.api', () => ({
   sheetsApi: {
+    forPeriod: vi.fn(async (period: string) => ({ id: `sheet-${period}`, period })),
     addEntry: vi.fn(async (_s: string, b: unknown) => ({
       id: 'e1',
       multiplier: 1.5,
@@ -140,9 +142,9 @@ describe('EntryForm', () => {
       Element.prototype.releasePointerCapture ??= () => undefined;
       Element.prototype.scrollIntoView ??= () => undefined;
     });
-    function mountOpen() {
+    function mountOpen(period = '2026-09') {
       return mount(EntryForm, {
-        props: { open: true, sheetId: 's1', period: '2026-09' },
+        props: { open: true, sheetId: 's1', period },
         global: {
           plugins: [
             createTestingPinia({ stubActions: false, createSpy: vi.fn }),
@@ -245,6 +247,43 @@ describe('EntryForm', () => {
       expect(t?.action?.label).toBe('Add attachment');
       t!.action!.onClick();
       expect(w.emitted('attach')?.[0]).toEqual([savedEntry]);
+      w.unmount();
+    });
+
+    it('adds to the open sheet when the date is inside its month', async () => {
+      const w = mountOpen();
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      expect(sheetsApi.forPeriod).not.toHaveBeenCalled();
+      expect((sheetsApi.addEntry as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe('s1');
+      w.unmount();
+    });
+
+    it('lets the date picker reach any day up to today, not just the sheet month', async () => {
+      const w = mountOpen('2026-08');
+      await flushPromises();
+      const date = document.body.querySelector('#date') as HTMLInputElement;
+      expect(date.getAttribute('min')).toBeNull();
+      expect(date.getAttribute('max')).toBe(todayIso());
+      w.unmount();
+    });
+
+    it("saves a date from another month to that month's sheet", async () => {
+      const { useToast } = await import('@/components/ui/useToast');
+      const { toasts } = useToast();
+      toasts.value = [];
+      const w = mountOpen('2026-08');
+      await flushPromises();
+      await fillAndSubmit();
+      const { sheetsApi } = await import('@/api/sheets.api');
+      expect(document.body.textContent).not.toContain('Date must be inside');
+      expect(sheetsApi.forPeriod).toHaveBeenCalledWith('2026-09');
+      expect((sheetsApi.addEntry as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe('sheet-2026-09');
+      const t = toasts.value.find((x) => x.title === 'Entry added to September 2026');
+      expect(t?.action?.label).toBe('Open sheet');
+      t!.action!.onClick();
+      expect(w.emitted('open-sheet')?.[0]).toEqual(['sheet-2026-09']);
       w.unmount();
     });
 

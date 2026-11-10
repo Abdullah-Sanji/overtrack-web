@@ -23,6 +23,7 @@ export { default as DropdownMenu } from './DropdownMenu.vue';
 export { default as Tabs } from './Tabs.vue';
 export { default as Toaster } from './Toaster.vue';
 export { default as DatePicker } from './DatePicker.vue';
+export { default as MonthPicker } from './MonthPicker.vue';
 export { default as TimeInput } from './TimeInput.vue';
 export { default as Timeline } from './Timeline.vue';
 export { useToast } from './useToast';

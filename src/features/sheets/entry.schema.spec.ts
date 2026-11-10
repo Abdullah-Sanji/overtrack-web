@@ -18,6 +18,21 @@ describe('entrySchema', () => {
     expect(s.safeParse(base).success).toBe(true);
     expect(deriveHours('18:00', '20:30')).toBe(2.5);
   });
+  it('accepts any past date inside the period, including the first day', () => {
+    expect(s.safeParse({ ...base, date: '2026-09-01' }).success).toBe(true);
+    expect(s.safeParse({ ...base, date: '2026-09-19' }).success).toBe(true);
+    expect(entrySchema('2026-03', '2026-09-20').safeParse({ ...base, date: '2026-03-14' }).success).toBe(
+      true,
+    );
+  });
+  it('accepts any past month when no period is given, but still rejects the future', () => {
+    const any = entrySchema(null, '2026-11-10');
+    expect(any.safeParse({ ...base, date: '2026-09-10' }).success).toBe(true);
+    expect(any.safeParse({ ...base, date: '2026-11-10' }).success).toBe(true);
+    expect(any.safeParse({ ...base, date: '2026-11-11' }).error?.issues[0].message).toBe(
+      'Date cannot be in the future',
+    );
+  });
   it('rejects empty date, out-of-period and future dates', () => {
     expect(s.safeParse({ ...base, date: '' }).success).toBe(false);
     expect(s.safeParse({ ...base, date: '2026-10-01' }).error?.issues[0].path).toEqual(['date']);
@@ -30,7 +45,9 @@ describe('entrySchema', () => {
   });
   it('rejects equal start and end, spans over 16 hours, and bad quarter steps', () => {
     expect(s.safeParse({ ...base, endTime: '18:00' }).error?.issues[0].path).toEqual(['endTime']);
-    expect(s.safeParse({ ...base, startTime: '20:00', endTime: '18:00' }).error?.issues[0].path).toEqual(['endTime']);
+    expect(s.safeParse({ ...base, startTime: '20:00', endTime: '18:00' }).error?.issues[0].path).toEqual([
+      'endTime',
+    ]);
     expect(s.safeParse({ ...base, hours: 1.3 }).success).toBe(false);
   });
   it('rejects hours larger than the time span', () => {

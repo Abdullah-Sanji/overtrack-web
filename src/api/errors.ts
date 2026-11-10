@@ -43,6 +43,7 @@ const MESSAGES: Record<string, string> = {
   ENTRY_OVERLAP: 'This entry overlaps another entry.',
   ENTRY_OUT_OF_PERIOD: 'The date must be inside the sheet’s month.',
   ENTRY_IN_FUTURE: 'The date cannot be in the future.',
+  PERIOD_IN_FUTURE: 'You can only open the current month or an earlier one.',
   ATTACHMENT_TOO_LARGE: 'The file is larger than 5 MB.',
   ATTACHMENT_TYPE: 'Only PNG, JPEG and PDF files are allowed.',
   ATTACHMENT_EXISTS: 'This entry already has an attachment.',

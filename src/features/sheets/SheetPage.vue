@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useOpenAttachment } from './useOpenAttachment';
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Plus } from 'lucide-vue-next';
 import type { EntryView } from '@/api/types';
 import { useQuery } from '@tanstack/vue-query';
@@ -20,6 +21,7 @@ import RejectionBanner from './components/RejectionBanner.vue';
 import ApprovalTimeline from './components/ApprovalTimeline.vue';
 
 const openAttachment = useOpenAttachment();
+const router = useRouter();
 const props = defineProps<{ id: string }>();
 const auth = useAuthStore();
 const { toast } = useToast();
@@ -117,6 +119,7 @@ async function confirmRemove() {
       :entry="editing"
       @saved="saved"
       @attach="edit"
+      @open-sheet="router.push({ name: 'sheet', params: { id: $event } })"
     />
     <ConfirmDialog
       :open="Boolean(removing)"

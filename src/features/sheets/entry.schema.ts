@@ -13,14 +13,18 @@ export const deriveHours = (start: string, end: string) => {
 };
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time');
 
-export function entrySchema(period: string, today: string) {
-  const { min, max } = periodBounds(period);
+/**
+ * With a period the date must fall inside that month (editing an entry, which stays on its sheet).
+ * With `null` any date up to today is valid: a new entry is saved to the sheet of its own month.
+ */
+export function entrySchema(period: string | null, today: string) {
+  const bounds = period ? periodBounds(period) : null;
   return z
     .object({
       date: z
         .string()
         .min(1, 'Pick a date')
-        .refine((d) => d >= min && d <= max, `Date must be inside ${period}`)
+        .refine((d) => !bounds || (d >= bounds.min && d <= bounds.max), `Date must be inside ${period}`)
         .refine((d) => d <= today, 'Date cannot be in the future'),
       startTime: time,
       endTime: time,

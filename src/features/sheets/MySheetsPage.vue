@@ -10,7 +10,7 @@ import { currentPeriod } from '@/lib/dates';
 import { formatHours, formatPeriod, formatDateTime } from '@/lib/format';
 import { messageFor } from '@/api/errors';
 import { useToast } from '@/components/ui/useToast';
-import { PageHeader, Button, DataTable, Pagination, StatusBadge } from '@/components/ui';
+import { PageHeader, Button, DataTable, Pagination, StatusBadge, MonthPicker } from '@/components/ui';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -21,10 +21,14 @@ const q = useQuery({
   queryFn: () => sheetsApi.list({ employeeId: auth.user?.id, page: page.value }),
 });
 const opening = ref(false);
-async function openCurrent() {
+// Any month up to the current one can be opened, so overtime can be recorded after the fact.
+const maxPeriod = currentPeriod();
+const month = ref<string | null>(maxPeriod);
+async function openMonth() {
+  const period = month.value ?? maxPeriod;
   opening.value = true;
   try {
-    const s = await sheetsApi.forPeriod(currentPeriod());
+    const s = await sheetsApi.forPeriod(period);
     await router.push({ name: 'sheet', params: { id: s.id } });
   } catch (e) {
     toast({ title: messageFor(e), tone: 'error' });
@@ -60,8 +64,15 @@ const columns: ColumnDef<SheetSummary, unknown>[] = [
 ];
 </script>
 <template>
-  <PageHeader title="My sheets" description="One sheet per month. Submit when the month is complete.">
-    <template #actions><Button :loading="opening" @click="openCurrent">Current month</Button></template>
+  <PageHeader
+    title="My sheets"
+    description="One sheet per month. Pick any month up to the current one to add entries, then submit when it is complete."
+  >
+    <template #actions>
+      <label for="sheet-month" class="sr-only">Month</label>
+      <MonthPicker id="sheet-month" v-model="month" :max="maxPeriod" class="w-44" />
+      <Button data-testid="open-month" :loading="opening" @click="openMonth">Open month</Button>
+    </template>
   </PageHeader>
   <DataTable
     :columns="columns"
@@ -70,11 +81,11 @@ const columns: ColumnDef<SheetSummary, unknown>[] = [
     :loading="q.isPending.value"
     :error="q.isError.value ? messageFor(q.error.value) : null"
     empty-title="No sheets yet"
-    empty-description="Open the current month to add your first entry."
+    empty-description="Pick a month above and open it to add your first entry."
     @retry="q.refetch()"
     @row-click="router.push({ name: 'sheet', params: { id: $event.id } })"
   >
-    <template #empty-action><Button @click="openCurrent">Open current month</Button></template>
+    <template #empty-action><Button @click="openMonth">Open month</Button></template>
   </DataTable>
   <Pagination
     v-if="q.data.value"
